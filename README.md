@@ -18,7 +18,7 @@ uhttp.get('/api/endpoint').then(function(data, xhr) {
 
 ```
 
-Currently the only options supported are headers, the [with credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Requests_with_credentials) flag, and a timeout:
+The options supported are headers, the [with credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Requests_with_credentials) flag, and a timeout:
 
 ```javascript
 var options = {
@@ -39,29 +39,119 @@ uhttp.get('/api/endpoint', options).success(function(data, xhr) {
 
 #### http.post(url, [,options] [,data])
 
-Use uhttp.post() to make a POST request.
+Use uhttp.post() to make a POST request. By default, the content type for JSON and FormData is automatically set for you. To change this, either set a global default for the "Content-Type" header, or pass it in as an option.
 
+```javascript
+uhttp.post('/api/endpoint/post', {some: 'data'}).then(function(data, xhr) {
+    //Success
+}).catch(function(err, xhr) {
+    //Error
+});
+```
+
+Example using FormData:
+```javascript
+var formElement = document.getElementById("myform");
+var formData = new FormData(formElement);
+formData.append("username", "cat");
+uhttp.post('api/endpoint/post', formData).then(function(data, xhr) {
+    //Success
+}).catch(function(err, xhr) {
+    //Error
+});
+```
+
+Example setting a custom content type:
+```javascript
+var myCustomData = '<custom>xml</custom>';
+uhttp.post('/api/endpoint/post', {'Content-Type': 'application/xml'}, myCustomData).then(function(data, xhr) {
+    //Success
+}).catch(function(err, xhr) {
+    //Error
+});
+```
 
 #### uhttp.put()
 
+Use uhttp.put() to make a PUT request. The options are similar to POST requests.
 
-#### uhttp.delete()
-
-
-
-#### uhttp.head()
-
+```javascript
+uhttp.put('/api/endpoint/put', {some: 'data'}).then(function(data, xhr) {
+    //Success
+}).catch(function(err, xhr) {
+    //Error
+});
+```
 
 #### uhttp.patch()
 
+Use uhttp.patch() to make a PATCH request.
+
+```javascript
+uhttp.patch('/api/endpoint/patch', {some: 'data'}).then(function(data, xhr) {
+    //Success
+}).catch(function(err, xhr) {
+    //Error
+});
+```
+
+#### uhttp.delete()
+
+Use uhttp.delete() to send a DELETE request.
+
+```javascript
+uhttp.delete('/api/endpoint/delete').then(function(data, xhr) {
+    //Success
+}).catch(function(err, xhr) {
+    //Error
+});
+```
+
+#### uhttp.head()
+
+Use uhttp.head() to send a HEAD request.
+
+```javascript
+uhttp.head('/api/endpoint/head').then(function(data, xhr) {
+    //Success
+}).catch(function(err, xhr) {
+    //Error
+});
+```
 
 #### uhttp.jsonp()
 
+Use uhttp.jsonp() to send a JSONP request.
+
+```javascript
+uhttp.jsonp('/api/endpoint/jsonp').then(function(data, xhr) {
+    //Success
+}).catch(function(err, xhr) {
+    //Error
+});
+```
 
 #### Global defaults
 
-You can set global default headers
+You can set global default options by using the uhttp.setGlobalOptions(options) method.
 
+```javascript
+uhttp.setGlobalOptions({
+    headers: {
+        'Custom': 'Global-Header'
+    },
+    timeout: 2000, //Set timeout to 2 seconds
+    withCredentials: true, //Set withCredentials on xhr requests
+    caching: true //Set whether to globally cache all requests (not recommended - use individual request options instead)
+});
+```
+
+You can also retrieve the global default options by using the uhttp.getGlobalOptions() method
+
+```javascript
+var globalAjaxOptions = uhttp.getGlobalOptions();
+console.log(globalAjaxOptions);
+```
 
 #### Options
 
@@ -75,15 +165,15 @@ You can set global default headers
 
 
 # TODO
-- [ ] Basic ajax requests (get, post, put, delete) - done
-- [ ] XSRF Cookie / Header - done
-- [ ] Timeouts - done
-- [ ] withCredentials - done
-- [ ] PATCH, HEAD, and JSONP requests - done
+- [x] Basic ajax requests (get, post, put, delete) - done
+- [x] XSRF Cookie / Header - done
+- [x] Timeouts - done
+- [x] withCredentials - done
+- [x] PATCH, HEAD, and JSONP requests - done
 - [ ] Check that CORS requests work - testing
 - [ ] Basic Caching (& timed caches)
 - [ ] Testing
-- [ ] Building / Build Setup
+- [x] Building / Build Setup - done
 - [ ] Finish Readme, setup github.io site
 
 Installing with Bower:

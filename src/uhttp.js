@@ -10,6 +10,9 @@
 
     'use strict';
 
+    var JSON_CONTENT_TYPE_HEADER = 'application/json;charset=utf-8';
+    var FORM_DATA_CONTENT_TYPE_HEADER = 'application/x-www-form-urlencoded';
+
     //Parse json responses
     var isObject = function(value) {return value !== null && typeof value === 'object';};
     var isString = function(value) {return value !== null && typeof value === 'string';};
@@ -84,9 +87,9 @@
         common: {
             'Accept': 'application/json, text/plain, */*'
         },
-        POST: {'Content-type': 'application/json;charset=utf-8'},
-        PUT: {'Content-type': 'application/json;charset=utf-8'},
-        PATCH: {'Content-Type': 'application/json;charset=utf-8'}
+        POST: {'Content-type': JSON_CONTENT_TYPE_HEADER},
+        PUT: {'Content-type': JSON_CONTENT_TYPE_HEADER},
+        PATCH: {'Content-Type': JSON_CONTENT_TYPE_HEADER}
     };
 
     var defaultOptions = {
@@ -164,10 +167,18 @@
         //Order of presidence: Options, Global, Default
         var mergedHeaders = {};
 
+        //Default headers set to reasonable defaults (cannot be modified by user - see globalOptions & options for mutable options)
         mergeHeaders(mergedHeaders, defaultHeaders.common);
         if(defaultHeaders[type]) {
-            mergeHeaders(mergedHeaders, defaultHeaders[type]);
+            if(isObject(data) && !isFile(data) && !isBlob(data)) {
+                if(!isFormData(data)) {
+                    mergeHeaders(mergedHeaders, defaultHeaders[type]);
+                } else {
+                    mergeHeaders(mergedHeaders, {'Content-Type': FORM_DATA_CONTENT_TYPE_HEADER});
+                }
+            }
         }
+
         mergeHeaders(mergedHeaders, globalOptions.headers);
         if(isObject(options.headers)) {
             mergeHeaders(mergedHeaders, options.headers);
