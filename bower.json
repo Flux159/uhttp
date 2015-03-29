@@ -1,0 +1,9 @@
+{
+  "name": "http",
+  "version": "1.0.0",
+  "main": "src/uhttp.js",
+  "ignore": [
+    ".jshintrc",
+    "**/*.txt"
+  ]
+}

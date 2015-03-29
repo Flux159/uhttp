@@ -1,0 +1,9 @@
+{
+  "name": "uhttp",
+  "description": "A micro http client side library",
+  "repository": "",
+  "private": true,
+	"devDependencies": {
+		
+	}
+}
