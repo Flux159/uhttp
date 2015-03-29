@@ -178,8 +178,8 @@ The options object is the same as the globalOptions object above except it can b
 - [x] Timeouts - done
 - [x] withCredentials - done
 - [x] PATCH, HEAD, and JSONP requests - done
-- [ ] Transform Requests / Responses
-- [ ] Basic Caching (& timed caches)
+- [x] Transform Requests / Responses
+- [x] Basic Caching (& timed caches)
 - [ ] Testing
 - [x] Building / Build Setup - done
 - [ ] Finish Readme, setup github.io site

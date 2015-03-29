@@ -194,7 +194,11 @@
             if(typeof cache === 'boolean') {
                 CacheFactory.get('__default').get(url);
             } else {
-                cache.get(url);
+                if(Object.prototype.toString.call(cache) === '[object Cache]') {
+                    cache.get(url);
+                } else {
+                    cache.cache.get(url);
+                }
             }
         }
 
@@ -254,7 +258,11 @@
                         if(typeof cache === 'boolean') {
                             CacheFactory.get('__default').set(url, parsedResponse);
                         } else {
-                            cache.set(url, parsedResponse);
+                            if(Object.prototype.toString.call(cache) === '[object Cache]') {
+                                cache.set(url, parsedResponse);
+                            } else {
+                                cache.cache.set(url, parsedResponse, cache.options);
+                            }
                         }
                     }
                     methods.then.call(methods, parsedResponse);
