@@ -144,7 +144,7 @@ uhttp.setGlobalOptions({
     withCredentials: true, //Set withCredentials on xhr requests,
     transformRequest: function(data) {}, //Transform requests before sending
     transformResponse: function(data) {}, //Transform returned responses
-    caching: true || [Cache object] //Set whether to globally cache all requests (not recommended - use individual request options instead)
+    caching: true || [Cache object] || {cache: [Cache object], options: {timeout: 120000}} //Set whether to globally cache all requests (not recommended - use individual request options instead)
 });
 ```
 
