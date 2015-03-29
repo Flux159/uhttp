@@ -131,9 +131,9 @@ uhttp.jsonp('/api/endpoint/jsonp').then(function(data, xhr) {
 });
 ```
 
-#### Global defaults
+#### Global Options
 
-You can set global default options by using the uhttp.setGlobalOptions(options) method.
+You can set global options by using the uhttp.setGlobalOptions(options) method. Note that "global" means on each page. If you are not using a single page web application architecture, you will need to set these options in a common script across all your pages. In a single page application architecture, this works as expected after setting once.
 
 ```javascript
 uhttp.setGlobalOptions({
@@ -141,8 +141,10 @@ uhttp.setGlobalOptions({
         'Custom': 'Global-Header'
     },
     timeout: 2000, //Set timeout to 2 seconds
-    withCredentials: true, //Set withCredentials on xhr requests
-    caching: true //Set whether to globally cache all requests (not recommended - use individual request options instead)
+    withCredentials: true, //Set withCredentials on xhr requests,
+    transformRequest: function(data) {}, //Transform requests before sending
+    transformResponse: function(data) {}, //Transform returned responses
+    caching: true || [Cache object] //Set whether to globally cache all requests (not recommended - use individual request options instead)
 });
 ```
 
@@ -155,11 +157,17 @@ console.log(globalAjaxOptions);
 
 #### Options
 
+The options object is the same as the globalOptions object above except it can be passed with each individual request.
+
 ###### Custom Headers
 
 ###### Timeouts
 
 ###### With Credentials
+
+###### Transform Request
+
+###### Transform Response
 
 ###### Caching
 
@@ -170,11 +178,12 @@ console.log(globalAjaxOptions);
 - [x] Timeouts - done
 - [x] withCredentials - done
 - [x] PATCH, HEAD, and JSONP requests - done
-- [ ] Check that CORS requests work - testing
+- [ ] Transform Requests / Responses
 - [ ] Basic Caching (& timed caches)
 - [ ] Testing
 - [x] Building / Build Setup - done
 - [ ] Finish Readme, setup github.io site
+- [ ] Installing with bower
 
 Installing with Bower:
 

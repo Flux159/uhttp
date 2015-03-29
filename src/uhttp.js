@@ -10,6 +10,42 @@
 
     'use strict';
 
+    var Cache = function(name, options) {
+        this.name = name;
+        this.data = {};
+        if(!options) {options = {};}
+        this.timeout = options.timeout || 0;
+    };
+    Cache.prototype.remove = function(key) {
+        delete this.data[key];
+    };
+    Cache.prototype.clear = function() {
+        this.data = {};
+    };
+    Cache.prototype.set = function(key, value, options) {
+        this.data[key] = value;
+        if(!options) {options = {};}
+        if(options.timeout || this.timeout > 0) {
+            setTimeout(this.remove(key), options.timeout || this.timeout);
+        }
+    };
+    Cache.prototype.get = function(key) {
+        return this.data[key];
+    };
+
+    var CacheFactory = function() {
+        this.caches = {__default: new Cache('__default')};
+    };
+    CacheFactory.prototype.get = function(key, options) {
+        if(this.caches[key]) {
+            return this.caches[key];
+        } else {
+            var newCache = new Cache(key, options);
+            this.caches[key] = newCache;
+            return newCache;
+        }
+    };
+
     var JSON_CONTENT_TYPE_HEADER = 'application/json;charset=utf-8';
     var FORM_DATA_CONTENT_TYPE_HEADER = 'application/x-www-form-urlencoded';
 
@@ -153,6 +189,15 @@
             options = {};
         }
 
+        var cache = options.cache || globalOptions.cache;
+        if(type === 'GET' && cache) {
+            if(typeof cache === 'boolean') {
+                CacheFactory.get('__default').get(url);
+            } else {
+                cache.get(url);
+            }
+        }
+
         var methods = {
             'then': function() {},
             'catch': function() {},
@@ -203,13 +248,20 @@
 
         request.onreadystatechange = function () {
             if (request.readyState === 4) {
-                var parsedRequest = (options.transformResponse || globalOptions.transformResponse || defaultOptions.transformResponse)(request);
+                var parsedResponse = (options.transformResponse || globalOptions.transformResponse || defaultOptions.transformResponse)(request);
                 if (request.status >= 200 && request.status < 300) {
-                    methods.then.call(methods, parsedRequest);
-                    methods.success.call(methods, parsedRequest);
+                    if(type === 'GET' && cache) {
+                        if(typeof cache === 'boolean') {
+                            CacheFactory.get('__default').set(url, parsedResponse);
+                        } else {
+                            cache.set(url, parsedResponse);
+                        }
+                    }
+                    methods.then.call(methods, parsedResponse);
+                    methods.success.call(methods, parsedResponse);
                 } else {
-                    methods['catch'].call(methods, parsedRequest);
-                    methods.error.call(methods, parsedRequest);
+                    methods['catch'].call(methods, parsedResponse);
+                    methods.error.call(methods, parsedResponse);
                 }
             }
         };
@@ -253,6 +305,7 @@
 
     exports.setGlobalOptions = setGlobalOptions;
     exports.getGlobalOptions = getGlobalOptions;
+    exports.CacheFactory = CacheFactory;
 
     exports.get = function(src, options) {
         return xhr('GET', src, options);
