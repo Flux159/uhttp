@@ -2,12 +2,12 @@
 
 A micro client-side ajax library modelled after angularjs's $http module that doesn't require any dependencies (jquery or otherwise). 
 
-uhttp is under 2kb minified and under 1kb minified and compressed.
+uhttp is under 4kb minified and under 2kb minified and compressed.
 
-uhttp supports setting headers globally for all requests and setting headers individually for each request. It also automatically parses json in responses with the appropriate content type. uhttp is based off of [atomic](https://github.com/toddmotto/atomic) and angularjs's [$http](https://github.com/angular/angular.js/blob/v1.3.x/src/ng/http.js). uhttp was written because atomic didn't support common features (setting headers & sending json POST requests) and [React](https://facebook.github.io/react/index.html) didn't come with a built in ajax library (requiring jQuery instead).
+uhttp supports setting headers globally for all requests and setting headers individually for each request. It also automatically parses json in responses with the appropriate content type. uhttp is based off of [atomic](https://github.com/toddmotto/atomic) and angularjs's [$http](https://github.com/angular/angular.js/blob/v1.3.x/src/ng/http.js). uhttp was written because atomic didn't support common features (setting headers & sending json POST requests) and [React](https://facebook.github.io/react/index.html) didn't come with a built in ajax library (recommending jQuery instead).
 
 #### uhttp.get(url, [,options])
-Use uhttp.get() to make a GET request. You can use either then, catch or success, error callbacks to obtain the response.
+Use uhttp.get() to make a GET request. You can use either "then... catch" or "success... error" callbacks to obtain the response.
 
 ```javascript
 uhttp.get('/api/endpoint').then(function(data, xhr) {
@@ -26,7 +26,7 @@ var options = {
         'custom': 'header'
     },
     withCredentials: true,
-    timeout: 3000 //3 seconds
+    timeout: 3000 //3 seconds; '0' for no timeout
 };
 
 uhttp.get('/api/endpoint', options).success(function(data, xhr) {
@@ -75,13 +75,16 @@ You can set global default headers
 
 
 # TODO
-- [ ] XSRF Tokens
-- [ ] Timeouts
-- [ ] withCredentials
-- [ ] HEAD & JSONP requests
-- [ ] Check that CORS requests work
+- [ ] Basic ajax requests (get, post, put, delete) - done
+- [ ] XSRF Cookie / Header - done
+- [ ] Timeouts - done
+- [ ] withCredentials - done
+- [ ] PATCH, HEAD, and JSONP requests - done
+- [ ] Check that CORS requests work - testing
 - [ ] Basic Caching (& timed caches)
 - [ ] Testing
+- [ ] Building / Build Setup
+- [ ] Finish Readme, setup github.io site
 
 Installing with Bower:
 
