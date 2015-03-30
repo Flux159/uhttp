@@ -1,11 +1,14 @@
 
 var express = require('express'),
-    bodyParser = require('body-parser');
+    bodyParser = require('body-parser'),
+    morgan = require('morgan');
+    path = require('path');
 
-var server = express();
+var app = express();
 
-server.use(bodyParser.json());
-server.use(bodyParser.urlencoded());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+app.use(morgan('dev'));
 
 app.route('/test/get').get(function(req, res) {
     return res.status(200).json({data: 'GET'});
@@ -53,9 +56,11 @@ app.route('/test/head').head(function(req, res) {
     res.status(200).end();
 });
 
+app.use(express.static(path.join(__dirname, '../..')));
+
 var port = process.env.PORT || 43760;
 
-server.listen(port, 'localhost');
+app.listen(port, 'localhost');
 console.log("Server started on port " + port);
 
-module.exports = {};
+module.exports = {url: 'http://localhost:' + port + "/"};

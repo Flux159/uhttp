@@ -181,6 +181,7 @@ The options object is the same as the globalOptions object above except it can b
 - [x] Transform Requests / Responses
 - [x] Basic Caching (& timed caches)
 - [ ] Testing
+- [ ] Fix up JSONP
 - [x] Building / Build Setup - done
 - [ ] Finish Readme, setup github.io site
 - [ ] Installing with bower

@@ -10,6 +10,9 @@
 
     'use strict';
 
+    /**
+     * A basic cache that stores requests and responses. Supports timeouts as well
+     * */
     var Cache = function(name, options) {
         this.name = name;
         this.data = {};
@@ -33,6 +36,9 @@
         return this.data[key];
     };
 
+    /**
+     * The public factory that allows users to create their own caches (useful for manually manipulating cached data)
+     */
     var CacheFactory = function() {
         this.caches = {__default: new Cache('__default')};
     };
@@ -46,6 +52,9 @@
         }
     };
 
+    /**
+     * Helper variables to determine request/response type
+     */
     var JSON_CONTENT_TYPE_HEADER = 'application/json;charset=utf-8';
     var FORM_DATA_CONTENT_TYPE_HEADER = 'application/x-www-form-urlencoded';
 
@@ -58,7 +67,9 @@
     var isBlob = function(obj) {return toString.call(obj) === '[object Blob]';};
     var isFormData = function(obj) {return toString.call(obj) === '[object FormData]';};
 
-    //Default transforming of requests and responses (can be overrided by setting defaultOptions)
+    /**
+     * Default transforming of requests and responses (can be overrided by setting defaultOptions)
+     */
     var transformRequest = function(d) {
         if(isObject(d) && !isFile(d) && !isBlob(d) && !isFormData(d)) {
             return JSON.stringify(d);
@@ -78,8 +89,10 @@
         return result;
     };
 
-    //Check if url is same origin (see: https://github.com/angular/angular.js/blob/master/src/ng/urlUtils.js)
-    //Used for XSRF Token handling
+    /**
+     * Check if url is same origin (see: https://github.com/angular/angular.js/blob/master/src/ng/urlUtils.js)
+     * Used for XSRF Token handling
+     */
     var urlParsingNode = document.createElement('a');
 
     var urlResolve = function(url) {
@@ -117,8 +130,29 @@
         parsed.host === originUrl.host);
     };
 
-    //Default headers state, is overwritten by globalOptions.headers and by [, options] in each request
-    //The default Content Type is 'application/json' not 'application/x-www-form-urlencoded'
+    /**
+     * A function to get a cookie from the browser. Used when passing the XSRF-Cookie
+     * Obtained from here: http://www.w3schools.com/js/js_cookies.asp
+     * @param cookie_name
+     * @returns {string}
+     */
+    var getCookie = function(cname) {
+        var name = cname + '=';
+        var ca = document.cookie.split(';');
+        for(var i=0; i<ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) ===' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) === 0) {return c.substring(name.length,c.length);}
+        }
+        return '';
+    };
+
+    /**
+     * Default headers state, is overwritten by globalOptions.headers and by [, options] in each request
+     * 'application/json' and 'application/x-www-form-urlencoded' are inferred by the object passed. To override, pass a globalOption or [, options] with the request
+     */
     var defaultHeaders = {
         common: {
             'Accept': 'application/json, text/plain, */*'
@@ -135,6 +169,9 @@
         xsrfHeaderName: 'X-XSRF-TOKEN'
     };
 
+    /**
+     * Getters and Setters for globalOptions
+     */
     var globalOptions = {
         headers: {},
         timeout: 0,
@@ -152,26 +189,15 @@
         return globalOptions;
     };
 
+    /**
+     * A function to merge header objects together (into a single dictionary that will be passed to setXHRHeaders)
+     */
     var mergeHeaders = function(mergedHeaders, addHeaders) {
         for(var h in addHeaders) {
             if(addHeaders.hasOwnProperty(h)) {
                 mergedHeaders[h] = addHeaders[h];
             }
         }
-    };
-
-    //Taken from here: http://www.w3schools.com/js/js_cookies.asp
-    var getCookie = function(cname) {
-        var name = cname + '=';
-        var ca = document.cookie.split(';');
-        for(var i=0; i<ca.length; i++) {
-            var c = ca[i];
-            while (c.charAt(0) ===' ') {
-                c = c.substring(1);
-            }
-            if (c.indexOf(name) === 0) {return c.substring(name.length,c.length);}
-        }
-        return '';
     };
 
     var setXHRHeaders = function(request, headerObject) {
@@ -182,7 +208,14 @@
         }
     };
 
-    //XHR Request Handling
+    /**
+     * XHR Request Handling
+     * @param type
+     * @param url
+     * @param options
+     * @param data
+     * @returns {{success: Function, error: Function, then: Function, catch: Function}}
+     */
     var xhr = function(type, url, options, data) {
 
         if(!options) {
@@ -309,6 +342,9 @@
         return callbacks;
     };
 
+    /**
+     * Exporting public functions to user
+     */
     var exports = {};
 
     exports.setGlobalOptions = setGlobalOptions;
