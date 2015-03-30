@@ -13,12 +13,12 @@
     /**
      * A basic cache that stores requests and responses. Supports timeouts as well
      * */
-    var Cache = function(name, options) {
+    function Cache(name, options) {
         this.name = name;
         this.data = {};
         if(!options) {options = {};}
         this.timeout = options.timeout || 0;
-    };
+    }
     Cache.prototype.remove = function(key) {
         delete this.data[key];
     };
@@ -39,9 +39,13 @@
     /**
      * The public factory that allows users to create their own caches (useful for manually manipulating cached data)
      */
-    var CacheFactory = function() {
+    function CacheFactory() {
+        if(typeof CacheFactory.instance === 'object') {
+            return CacheFactory.instance;
+        }
         this.caches = {__default: new Cache('__default')};
-    };
+        CacheFactory.instance = this;
+    }
     CacheFactory.prototype.get = function(key, options) {
         if(this.caches[key]) {
             return this.caches[key];
@@ -53,32 +57,32 @@
     };
 
     /**
-     * Helper variables to determine request/response type
+     * Helper functions to determine request/response type
      */
     var JSON_CONTENT_TYPE_HEADER = 'application/json;charset=utf-8';
     var FORM_DATA_CONTENT_TYPE_HEADER = 'application/x-www-form-urlencoded';
 
     //Parse json responses
-    var isObject = function(value) {return value !== null && typeof value === 'object';};
-    var isString = function(value) {return value !== null && typeof value === 'string';};
+    function isObject(value) {return value !== null && typeof value === 'object';}
+    function isString(value) {return value !== null && typeof value === 'string';}
 
     var toString = Object.prototype.toString;
-    var isFile = function(obj) {return toString.call(obj) === '[object File]';};
-    var isBlob = function(obj) {return toString.call(obj) === '[object Blob]';};
-    var isFormData = function(obj) {return toString.call(obj) === '[object FormData]';};
+    function isFile(obj) {return toString.call(obj) === '[object File]';}
+    function isBlob(obj) {return toString.call(obj) === '[object Blob]';}
+    function isFormData(obj) {return toString.call(obj) === '[object FormData]';}
 
     /**
-     * Default transforming of requests and responses (can be overrided by setting defaultOptions)
+     * Default transforming of requests and responses (can be overrided by setting globalOptions)
      */
-    var transformRequest = function(d) {
+    function transformRequest(d) {
         if(isObject(d) && !isFile(d) && !isBlob(d) && !isFormData(d)) {
             return JSON.stringify(d);
         } else {
             return d;
         }
-    };
+    }
 
-    var parse = function(req) {
+    function parse(req) {
         var result;
         var d = req.responseText;
         try {
@@ -87,7 +91,7 @@
             result = d;
         }
         return result;
-    };
+    }
 
     /**
      * Check if url is same origin (see: https://github.com/angular/angular.js/blob/master/src/ng/urlUtils.js)
@@ -95,7 +99,7 @@
      */
     var urlParsingNode = document.createElement('a');
 
-    var urlResolve = function(url) {
+    function urlResolve(url) {
         var href = url;
 
         //documentMode is IE only property - (see: https://github.com/angular/angular.js/blob/master/src/Angular.js)
@@ -120,23 +124,23 @@
             port: urlParsingNode.port,
             pathname: (urlParsingNode.pathname.charAt(0) === '/') ? urlParsingNode.pathname : '/' + urlParsingNode.pathname
         };
-    };
+    }
 
     var originUrl = urlResolve(window.location.href);
 
-    var urlIsSameOrigin = function(requestUrl) {
+    function urlIsSameOrigin(requestUrl) {
         var parsed = (isString(requestUrl)) ? urlResolve(requestUrl) : requestUrl;
         return (parsed.protocol === originUrl.protocol &&
         parsed.host === originUrl.host);
-    };
+    }
 
     /**
      * A function to get a cookie from the browser. Used when passing the XSRF-Cookie
      * Obtained from here: http://www.w3schools.com/js/js_cookies.asp
-     * @param cookie_name
+     * @param cname
      * @returns {string}
      */
-    var getCookie = function(cname) {
+    function getCookie(cname) {
         var name = cname + '=';
         var ca = document.cookie.split(';');
         for(var i=0; i<ca.length; i++) {
@@ -147,7 +151,7 @@
             if (c.indexOf(name) === 0) {return c.substring(name.length,c.length);}
         }
         return '';
-    };
+    }
 
     /**
      * Default headers state, is overwritten by globalOptions.headers and by [, options] in each request
@@ -170,7 +174,7 @@
     };
 
     /**
-     * Getters and Setters for globalOptions
+     * Getters and Setters for global uhttp options (overwrites default options, can be overwritten by passing [,options] to individual requests
      */
     var globalOptions = {
         headers: {},
@@ -178,69 +182,142 @@
         withCredentials: false
     };
 
-    var setGlobalOptions = function(optionsObject) {
+    function setGlobalOptions(optionsObject) {
         globalOptions = optionsObject;
         if(!globalOptions.headers || !isObject(globalOptions.headers)) {
             globalOptions.headers = {};
         }
-    };
+    }
 
-    var getGlobalOptions = function() {
+    function getGlobalOptions() {
         return globalOptions;
-    };
+    }
 
     /**
      * A function to merge header objects together (into a single dictionary that will be passed to setXHRHeaders)
      */
-    var mergeHeaders = function(mergedHeaders, addHeaders) {
+    function mergeHeaders(mergedHeaders, addHeaders) {
         for(var h in addHeaders) {
             if(addHeaders.hasOwnProperty(h)) {
                 mergedHeaders[h] = addHeaders[h];
             }
         }
-    };
+    }
 
-    var setXHRHeaders = function(request, headerObject) {
+    function setXHRHeaders(request, headerObject) {
         for(var h in headerObject) {
             if(headerObject.hasOwnProperty(h)) {
                 request.setRequestHeader(h, headerObject[h]);
             }
         }
-    };
+    }
 
     /**
-     * XHR Request Handling
+     * Helper function to get callback in jsonp
+     * @param name
+     * @returns {string}
+     */
+    //var getParameterByName = function(name) {
+    //    name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+    //    var regex = new RegExp('[\\?&]' + name + '=([^&#]*)'),
+    //        results = regex.exec(location.search);
+    //    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    //};
+
+    /**
+     * Handle jsonp requests. See https://github.com/angular/angular.js/blob/master/src/ng/httpBackend.js
+     * Also see: https://github.com/lhorie/mithril.js/blob/next/mithril.js
+     * Returns Promise
+     * @param url - the jsonp url
+     * @param [options] - options supported: {timeout: int}
+     */
+    function jsonp(url) {
+
+        var methods = {
+            'then': function() {},
+            'catch': function() {}
+        };
+
+        var callbacks = {
+            then: function(callback) {
+                methods.then = callback;
+                return callbacks;
+            },
+            'catch': function(callback) {
+                methods['catch'] = callback;
+                return callbacks;
+            }
+        };
+
+        var callbackId = 'uhttp_callback' + new Date().getTime() + '_' + Math.round(Math.random() * 1e16).toString(36);
+        var script = document.createElement(script);
+
+        window[callbackId] = function(res) {
+            script.parentNode.removeChild(script);
+            window[callbackId] = undefined;
+            methods.then.call(methods, res);
+        };
+
+        script.onerror = function(e) {
+            script.parentNode.removeChild(script);
+            window[callbackId] = undefined;
+            methods.catch.call(methods, e);
+        };
+
+        //Find JSON_CALLBACK in url & replace w/ callbackId function
+        script.src = url.replace('JSON_CALLBACK', callbackId);
+
+        //Create script, run async, & call callback when complete
+        document.body.appendChild(script);
+
+        return callbacks;
+    }
+
+    /**
+     * XHR Request Handling - returns Promise
      * @param type
      * @param url
-     * @param options
+     * @param [options]
      * @param data
-     * @returns {{success: Function, error: Function, then: Function, catch: Function}}
      */
-    var xhr = function(type, url, options, data) {
-
+    function xhr(type, url, options, data) {
         if(!options) {
             options = {};
         }
 
+        var methods = {
+            'then': function() {},
+            'catch': function() {}
+        };
+
+        var callbacks = {
+            then: function(callback) {
+                methods.then = callback;
+                return callbacks;
+            },
+            'catch': function(callback) {
+                methods['catch'] = callback;
+                return callbacks;
+            }
+        };
+
         var cache = options.cache || globalOptions.cache;
         if(type === 'GET' && cache) {
+            var parsedResponse;
             if(typeof cache === 'boolean') {
-                CacheFactory.get('__default').get(url);
+                parsedResponse = CacheFactory.get('__default').get(url);
             } else {
                 if(Object.prototype.toString.call(cache) === '[object Cache]') {
-                    cache.get(url);
+                    parsedResponse = cache.get(url);
                 } else {
-                    cache.cache.get(url);
+                    parsedResponse = cache.cache.get(url);
                 }
+            }
+            if(parsedResponse) {
+                return methods.then.call(methods, parsedResponse);
             }
         }
 
-        var methods = {
-            'then': function() {},
-            'catch': function() {},
-            'success': function() {},
-            'error': function() {}
-        };
         var XHR = root.XMLHttpRequest || ActiveXObject;
         var request = new XHR('MSXML2.XMLHTTP.3.0');
         request.open(type, url, true);
@@ -299,10 +376,8 @@
                         }
                     }
                     methods.then.call(methods, parsedResponse);
-                    methods.success.call(methods, parsedResponse);
                 } else {
                     methods['catch'].call(methods, parsedResponse);
-                    methods.error.call(methods, parsedResponse);
                 }
             }
         };
@@ -320,27 +395,8 @@
             }, timeout);
         }
 
-        var callbacks = {
-            success: function(callback) {
-                methods.success = callback;
-                return callbacks;
-            },
-            error: function(callback) {
-                methods.error = callback;
-                return callbacks;
-            },
-            then: function(callback) {
-                methods.then = callback;
-                return callbacks;
-            },
-            'catch': function(callback) {
-                methods['catch'] = callback;
-                return callbacks;
-            }
-        };
-
         return callbacks;
-    };
+    }
 
     /**
      * Exporting public functions to user
@@ -349,7 +405,8 @@
 
     exports.setGlobalOptions = setGlobalOptions;
     exports.getGlobalOptions = getGlobalOptions;
-    exports.CacheFactory = CacheFactory;
+
+    exports.CacheFactory = new CacheFactory();
 
     exports.get = function(src, options) {
         return xhr('GET', src, options);
@@ -383,12 +440,12 @@
         return xhr('POST', src, options, data);
     };
 
-    exports.delete = function(src, options) {
+    exports['delete'] = function(src, options) {
         return xhr('DELETE', src, options);
     };
 
     exports.jsonp = function(src, options) {
-        return xhr('JSONP', src, options);
+        return jsonp(src, options);
     };
 
     return exports;

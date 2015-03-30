@@ -2,12 +2,16 @@
 
 A micro client-side ajax library modelled after angularjs's $http module that doesn't require any dependencies (jquery or otherwise). 
 
-uhttp is under 4kb minified and under 2kb minified and compressed.
+uhttp is about 4kb minified and about 2kb minified and compressed.
 
 uhttp supports setting headers globally for all requests and setting headers individually for each request. It also automatically parses json in responses with the appropriate content type. uhttp is based off of [atomic](https://github.com/toddmotto/atomic) and angularjs's [$http](https://github.com/angular/angular.js/blob/v1.3.x/src/ng/http.js). uhttp was written because atomic didn't support common features (setting headers & sending json POST requests) and [React](https://facebook.github.io/react/index.html) didn't come with a built in ajax library (recommending jQuery instead).
 
+Note that uhttp does not use true [promises](https://github.com/jakearchibald/es6-promise). However, uhttp-promises does use promises from es6-promise-shim. It is recommended that you use uhttp-promises for your production needs.
+
+uhttp-promises is also a 4kb library, but uses an es6-promises shim (~2.5kb) to work correctly across browsers.
+
 #### uhttp.get(url, [,options])
-Use uhttp.get() to make a GET request. You can use either "then... catch" or "success... error" callbacks to obtain the response.
+Use uhttp.get() to make a GET request. You can use either "then... catch" callbacks to obtain the response.
 
 ```javascript
 uhttp.get('/api/endpoint').then(function(data, xhr) {
@@ -29,9 +33,9 @@ var options = {
     timeout: 3000 //3 seconds; '0' for no timeout
 };
 
-uhttp.get('/api/endpoint', options).success(function(data, xhr) {
+uhttp.get('/api/endpoint', options).then(function(data, xhr) {
     //Success
-}).error(function(err, xhr) {
+}).catch(function(err, xhr) {
     //Error
 });
 
@@ -121,10 +125,10 @@ uhttp.head('/api/endpoint/head').then(function(data, xhr) {
 
 #### uhttp.jsonp()
 
-Use uhttp.jsonp() to send a JSONP request.
+Use uhttp.jsonp() to send a JSONP request. Note that you should define the callback as 'JSON_CALLBACK'. uhttp will generate a global function attached to the window object for the duration of the request and pass its data to the then/catch functions.
 
 ```javascript
-uhttp.jsonp('/api/endpoint/jsonp').then(function(data, xhr) {
+uhttp.jsonp('/api/endpoint/jsonp?callback=JSON_CALLBACK').then(function(data, xhr) {
     //Success
 }).catch(function(err, xhr) {
     //Error
@@ -171,6 +175,17 @@ The options object is the same as the globalOptions object above except it can b
 
 ###### Caching
 
+#### Development, Testing, & Building
+
+uhttp is developed using a nodejs environment. Make sure that you have nodejs and npm installed, clone this source repository and run the following in the uhttp directory:
+
+```
+npm install && grunt build
+```
+
+That will install all dependencies for development, run uhttp's tests, generate code coverage metrics and documentation, and build a minified version of uhttp in the dist directory.
+
+If you have bug fixes that you want merged into uhttp, submit a pull request on the github repository.
 
 # TODO
 - [x] Basic ajax requests (get, post, put, delete) - done
@@ -187,6 +202,37 @@ The options object is the same as the globalOptions object above except it can b
 - [ ] Installing with bower
 
 Installing with Bower:
+
+uhttp is a client side library that can be installed with bower, a dependency management system for client side javascript. Simply run the following (if you have bower installed):
+
+```
+bower install uhttp --save
+```
+
+LICENSE
+-----
+
+The MIT License (MIT)
+
+Copyright (c) 2015 Suyog Sonwalkar
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
 
