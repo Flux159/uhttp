@@ -224,7 +224,6 @@ describe('uhttp', function() {
                         window.uhttp.get('http://localhost:43760/api/timeout', {timeout: 250}).then(function(res) {
                             //Do nothing (timeout sleeps for 1 second, so this should abort/give an error)
                         }).catch(function(err) {
-                            console.log(err);
                             done();
                         });
 
@@ -259,7 +258,46 @@ describe('uhttp', function() {
         });
 
         it('Should allow users to create custom caches with cache timeouts and clearing capabilities', function(done) {
-            done();
+            testSetup(function(errors, window) {
+
+                var cacheFactory = window.uhttp.CacheFactory;
+                var blogCache = cacheFactory.get('blogs');
+                var cacheOptions = {cache: blogCache, options: {timeout: 500}};
+
+                window.uhttp.get('http://localhost:43760/api/get', {cache: cacheOptions}).then(function(res, status, xhr) {
+                    assert.equal(res.data, "GET");
+
+                    window.uhttp.get('http://localhost:43760/api/get', {cache: cacheOptions}).then(function(res, status, xhr) {
+                        assert.equal(res.data, "GET");
+                        assert(!status);
+                        assert(!xhr);
+
+                        setTimeout(function() {
+                            window.uhttp.get('http://localhost:43760/api/get', {cache: cacheOptions}).then(function(res, status, xhr) {
+
+                                assert.equal(res.data, "GET");
+                                assert(status);
+                                assert(xhr);
+
+                                //Using the same cache
+                                window.uhttp.get('http://localhost:43760/api/get', {cache: blogCache}).then(function(res, status, xhr) {
+
+                                    assert.equal(res.data, "GET");
+                                    assert(!status);
+                                    assert(!xhr);
+
+                                    done();
+                                });
+                            });
+                        }, 510);
+
+                    }).catch(function(err) {
+                        //Do nothing
+                    });
+                }).catch(function(err) {
+                    //Do nothing
+                });
+            });
         });
 
     });
@@ -267,7 +305,18 @@ describe('uhttp', function() {
     describe('XSRF', function() {
 
         it('Should send the correct XSRF Cookie', function(done) {
-            done();
+            testSetup(function(errors, window) {
+
+                window.uhttp.setCookie('XSRF-TOKEN', 'MY_XSRF_TOKEN');
+
+                window.uhttp.get('http://localhost:43760/api/xsrf').then(function(res) {
+                    assert(res.data, 'Correct xsrf token');
+                }).catch(function(err) {
+                    //Do nothing
+                }).finally(function() {
+                    done();
+                });
+            });
         });
 
     });
@@ -280,16 +329,44 @@ describe('uhttp', function() {
 
     });
 
-    describe('Authentication Tokens', function() {
+    describe('Interceptors', function() {
+        it('Should correctly intercept requests and responses', function(done) {
+            testSetup(function(errors, window) {
+                var options = {
+                    transformRequest: function(config) {
 
-        it('Should properly set an authentication token', function(done) {
-            done();
+                        config.src = 'http://localhost:43760/api/get/again';
+
+                        return config;
+                    },
+                    transformResponse: function(xhr) {
+                        if(xhr.responseText.indexOf('GET AGAIN') > 0) {
+                            xhr.responseText = '{"data": "Man in the middle!"}';
+                        }
+                    }
+                };
+
+                window.uhttp.get('http://localhost:43760/api/get', options).then(function(res) {
+                    assert(res.data, "Man in the middle!");
+                }).catch(function(err) {
+                    //Do nothing
+                }).finally(function() {
+                    done();
+                });
+            });
         });
-
     });
 
-    describe('Interceptors', function() {
-        //TODO: Intercept the actual request? Not just the data?
+    describe('Cookies', function() {
+        it('Should correctly handle getting and setting cookies', function(done) {
+            testSetup(function(errors, window) {
+                window.uhttp.setCookie('mycookie', 'yum');
+                window.uhttp.setCookie('othercookie', 'yay!', 365); //Set cookie for 365 days
+                assert(window.uhttp.getCookie('mycookie'), 'yum');
+                assert(window.uhttp.getCookie('othercookie'), 'yay!');
+                done();
+            });
+        });
     });
 
     describe('CORS', function() {

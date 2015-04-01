@@ -16,6 +16,10 @@ app.route('/api/get').get(function(req, res) {
     return res.status(200).json({data: 'GET'});
 });
 
+app.route('/api/get/again').get(function(req, res) {
+    return res.status(200).json({data: 'GET AGAIN'});
+});
+
 app.route('/api/post').post(function(req, res) {
     if(req.is('application/json') && req.body.content === "Testing POST") {
         return res.status(200).json({data: "POST"});
@@ -77,10 +81,14 @@ app.route('/api/timeout').get(function(req, res) {
 });
 
 app.route('/api/xsrf').get(function(req, res) {
-
+    if(req.headers['x-xsrf-token'] === 'MY_XSRF_TOKEN') {
+        return res.status(200).json({data: "Correct xsrf token"});
+    } else {
+        return res.status(500).json("Internal Server Error");
+    }
 });
 
-app.route('/api/post/iamge').post(function(req, res) {
+app.route('/api/post/image').post(function(req, res) {
 
 });
 

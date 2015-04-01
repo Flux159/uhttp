@@ -28,8 +28,11 @@
     Cache.prototype.set = function(key, value, options) {
         this.data[key] = value;
         if(!options) {options = {};}
-        if(options.timeout || this.timeout > 0) {
-            setTimeout(this.remove(key), options.timeout || this.timeout);
+        if((options.timeout || this.timeout) > 0) {
+            var cache = this;
+            setTimeout(function() {
+                cache.remove(key);
+            }, (options.timeout || this.timeout));
         }
     };
     Cache.prototype.get = function(key) {
@@ -82,8 +85,8 @@
     /**
      * Default transforming of requests and responses (can be overrided by setting globalOptions)
      */
-    function transformRequest(xhr) {
-        return xhr;
+    function transformRequest(config) {
+        return config;
     }
 
     function transformResponse(xhr) {
@@ -329,37 +332,6 @@
             }
         };
 
-        var cache = options.cache || globalOptions.cache;
-        if(type === 'GET' && cache) {
-            var parsedResponse;
-            if(typeof cache === 'boolean') {
-                parsedResponse = thisCacheFactory.get('__default').get(url);
-            } else {
-                if(toString.call(cache) === '[object Cache]') {
-                    parsedResponse = cache.get(url);
-                } else {
-                    parsedResponse = cache.cache.get(url);
-                }
-            }
-            if(parsedResponse) {
-                //Need to have a timeout in order to return then go to callback. I think that setIntermediate is supposed to solve this problem
-                //Note that apparently real promises have a similar issue
-                setTimeout(function() {
-                    methods.then.call(methods, parsedResponse);
-                }, 1);
-                return callbacks;
-            }
-        }
-
-        var timeout = globalOptions.timeout;
-        if(options.timeout !== null && options.timeout !== undefined) {
-            timeout = options.timeout;
-        }
-
-        var XHR = root.XMLHttpRequest || ActiveXObject;
-        var request = new XHR('MSXML2.XMLHTTP.3.0');
-        request.open(type, url, true);
-
         //Iterate headers and add to xhr
         //Order of presidence: Options, Global, Default
         var mergedHeaders = {};
@@ -389,29 +361,74 @@
             }
         }
 
-        setXHRHeaders(request, mergedHeaders);
+        var mergedOptions = {
+            timeout: (options.timeout || globalOptions.timeout),
+            cache: (options.cache || globalOptions.cache),
+            withCredentials: (options.withCredentials || globalOptions.withCredentials),
+            progressHandler: (options.progressHandler || globalOptions.progressHandler),
+            transformRequest: (options.transformRequest || globalOptions.transformRequest || defaultOptions.transformRequest),
+            transformResponse: (options.transformResponse || globalOptions.transformResponse || defaultOptions.transformResponse),
+            transformRequestData: (options.transformRequestData || globalOptions.transformRequestData || defaultOptions.transformRequestData),
+            transformResponseData: (options.transformResponseData || globalOptions.transformResponseData || defaultOptions.transformResponseData)
+        };
+
+        var config = {
+            headers: mergedHeaders,
+            options: mergedOptions,
+            type: type,
+            url: url
+        };
+
+        mergedOptions.transformRequest(config);
+
+        var cache = config.options.cache;
+        if(config.type === 'GET' && cache) {
+            var parsedResponse;
+            if(typeof cache === 'boolean') {
+                parsedResponse = thisCacheFactory.get('__default').get(url);
+            } else {
+                if(cache.constructor.name === 'Cache') {
+                    parsedResponse = cache.get(url);
+                } else {
+                    parsedResponse = cache.cache.get(url);
+                }
+            }
+            if(parsedResponse) {
+                //Need to have a timeout in order to return then go to callback. I think that setIntermediate is supposed to solve this problem
+                //Note that apparently real promises have a similar issue
+                setTimeout(function() {
+                    methods.then.call(methods, parsedResponse);
+                }, 1);
+                return callbacks;
+            }
+        }
+
+        var XHR = root.XMLHttpRequest || ActiveXObject;
+        var request = new XHR('MSXML2.XMLHTTP.3.0');
+        request.open(config.type, config.url, true);
+
+        setXHRHeaders(request, config.headers);
 
         //Set withCredentials option
-        if(options.withCredentials || globalOptions.withCredentials) {
+        if(config.options.withCredentials) {
             request.withCredentials = true;
         }
 
         //Set progress handler
-        var progressHandler = (options.progressHandler || globalOptions.progressHandler);
-        if(progressHandler && request.upload) {
-            request.upload.addEventListener('progress', progressHandler, false);
+        if(config.options.progressHandler && request.upload) {
+            request.upload.addEventListener('progress', config.options.progressHandler, false);
         }
 
         request.onreadystatechange = function () {
             if (request.readyState === 4) {
-                (options.transformResponse || globalOptions.transformResponse || defaultOptions.transformResponse)(request);
-                var parsedResponse = (options.transformResponseData || globalOptions.transformResponseData || defaultOptions.transformResponseData)(request);
+                config.options.transformResponse(request);
+                var parsedResponse = config.options.transformResponseData(request);
                 if ((request.status >= 200 && request.status < 300) || request.status === 304) {
                     if(type === 'GET' && cache) {
                         if(typeof cache === 'boolean') {
                             thisCacheFactory.get('__default').set(url, parsedResponse);
                         } else {
-                            if(Object.prototype.toString.call(cache) === '[object Cache]') {
+                            if(cache.constructor.name === 'Cache') {
                                 cache.set(url, parsedResponse);
                             } else {
                                 cache.cache.set(url, parsedResponse, cache.options);
@@ -426,17 +443,16 @@
             }
         };
 
-        (options.transformRequest || globalOptions.transformRequest || defaultOptions.transformRequest)(request);
-        request.send((options.transformRequestData || globalOptions.transformRequestData || defaultOptions.transformRequestData)(data));
+        //(options.transformRequest || globalOptions.transformRequest || defaultOptions.transformRequest)(request);
+        request.send(config.options.transformRequestData(data));
 
         //Timeout handling
-
-        if(timeout > 0) {
+        if(config.options.timeout > 0) {
             setTimeout(function() {
                 if(request) {
                     request.abort();
                 }
-            }, timeout);
+            }, config.options.timeout);
         }
 
         return callbacks;
