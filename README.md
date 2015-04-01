@@ -221,8 +221,8 @@ If you have bug fixes that you want merged into uhttp, submit a pull request on 
 - [x] PATCH, HEAD, and JSONP requests - done
 - [x] Transform Requests / Responses
 - [x] Basic Caching (& timed caches)
-- [ ] Testing
-- [ ] Fix up JSONP
+- [ ] Finish Testing
+- [x] Fix up JSONP
 - [x] Building / Build Setup - done
 - [ ] Finish Readme, setup github.io site
 - [ ] Installing with bower

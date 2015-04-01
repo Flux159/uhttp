@@ -200,21 +200,37 @@ describe('uhttp', function() {
     describe('JSONP', function() {
 
         it('Should send a JSONP request correctly', function(done) {
-            done();
+            testSetup(function(errors, window) {
+                window.uhttp.jsonp('http://localhost:43760/api/jsonp?callback=JSON_CALLBACK').then(function(res) {
+                    assert.equal(res.data, 'JSONP');
+                    done();
+                });
+            });
         });
 
-    });
-
-    describe('Global Options', function() {
-        it('Should set global options across multiple requests', function(done) {
-            done();
-        });
     });
 
     describe('Timeouts', function() {
 
         it('Should handle timeouts correctly', function(done) {
-            done();
+            if(isNode) {
+                done(); //Aborting xhr requests seems to be iffy in jsdom
+            } else {
+                testSetup(function(errors, window) {
+
+                    window.uhttp.get('http://localhost:43760/api/timeout').then(function(res) {
+                        assert.equal(res.data, 'timein');
+
+                        window.uhttp.get('http://localhost:43760/api/timeout', {timeout: 250}).then(function(res) {
+                            //Do nothing (timeout sleeps for 1 second, so this should abort/give an error)
+                        }).catch(function(err) {
+                            console.log(err);
+                            done();
+                        });
+
+                    });
+                });
+            }
         });
 
     });
@@ -235,17 +251,70 @@ describe('uhttp', function() {
 
     });
 
-    describe('CORS', function() {
+    describe('POST Images/Files', function() {
 
-        it('Should send CORS requests correctly when CORS is enabled on server', function(done) {
-            done();
-        });
-
-        it('Should return an error when CORS requests are not allowed from this client', function(done) {
+        it('Should send the correct Image data', function(done) {
             done();
         });
 
     });
 
+    describe('CORS', function() {
+
+        it('Should send CORS requests correctly when CORS is enabled on server', function(done) {
+            if(isNode) {
+                done(); //jsdom doesn't support CORS requests via its XHRHttpRequests
+            } else {
+                testSetup(function(errors, window) {
+                    window.uhttp.get('http://localhost:43761/api/cors').then(function(res) {
+                        assert.equal(res.data, "CORS");
+                        done();
+                    }).catch(function(err) {
+                        //Do nothing
+                    });
+                });
+            }
+        });
+
+        it('Should return an error when CORS requests are not allowed from this client', function(done) {
+            if(isNode) {
+                done(); //jsdom doesn't support CORS requests via its XHRHttpRequests
+            } else {
+                testSetup(function(errors, window) {
+                    window.uhttp.get('http://localhost:43761/api/cors/fail').then(function(res) {
+                        //Do nothing
+                    }).catch(function(err, status, xhr) {
+                        done();
+                    });
+                });
+            }
+        });
+
+    });
+
+    //Note: These global options change all responses to 'changed!', keep them last
+    describe('Global Options', function() {
+        it('Should set global options across multiple requests', function(done) {
+
+            testSetup(function(errors, window) {
+                var globalOptions = {
+                    transformResponse: function(data) {
+                        return {content: 'changed!'};
+                    }
+                };
+
+                window.uhttp.setGlobalOptions(globalOptions);
+
+                window.uhttp.get('http://localhost:43760/api/get').then(function(res) {
+                    assert.equal(res.content, 'changed!');
+                    window.uhttp.get('http://localhost:43760/api/get').then(function(res) {
+                        assert.equal(res.content, 'changed!');
+                        done();
+                    });
+                });
+            });
+
+        });
+    });
 
 });

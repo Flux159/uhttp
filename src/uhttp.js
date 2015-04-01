@@ -206,8 +206,9 @@
     function jsonp(url) {
 
         var methods = {
-            'then': function() {},
-            'catch': function() {}
+            then: function() {},
+            'catch': function() {},
+            'finally': function() {}
         };
 
         var callbacks = {
@@ -218,22 +219,28 @@
             'catch': function(callback) {
                 methods['catch'] = callback;
                 return callbacks;
+            },
+            'finally': function(callback) {
+                methods['finally'] = callback;
+                return callback;
             }
         };
 
-        var callbackId = 'uhttp_callback' + new Date().getTime() + '_' + Math.round(Math.random() * 1e16).toString(36);
-        var script = document.createElement(script);
+        var callbackId = 'uhttp_callback_' + new Date().getTime() + '_' + Math.round(Math.random() * 1e16).toString(36);
+        var script = document.createElement('script');
 
         window[callbackId] = function(res) {
             script.parentNode.removeChild(script);
             window[callbackId] = undefined;
             methods.then.call(methods, res);
+            methods.finally.call(methods, res);
         };
 
         script.onerror = function(e) {
             script.parentNode.removeChild(script);
             window[callbackId] = undefined;
             methods.catch.call(methods, e);
+            methods.finally.call(methods, e);
         };
 
         //Find JSON_CALLBACK in url & replace w/ callbackId function
@@ -250,7 +257,6 @@
      * @type {string}
      */
     var JSON_CONTENT_TYPE_HEADER = 'application/json;charset=utf-8';
-    var FORM_DATA_CONTENT_TYPE_HEADER = 'multipart/form-data';
 
     /**
      * XHR Request Handling - returns Promise
@@ -265,7 +271,7 @@
         }
 
         var methods = {
-            'then': function() {},
+            then: function() {},
             'catch': function() {},
             'finally': function() {}
         };
@@ -300,6 +306,12 @@
             if(parsedResponse) {
                 return methods.then.call(methods, parsedResponse);
             }
+        }
+
+        var aborted = false;
+        var timeout = globalOptions.timeout;
+        if(options.timeout !== null && options.timeout !== undefined) {
+            timeout = options.timeout;
         }
 
         var XHR = root.XMLHttpRequest || ActiveXObject;
@@ -368,13 +380,12 @@
         request.send((options.transformRequest || globalOptions.transformRequest || defaultOptions.transformRequest)(data));
 
         //Timeout handling
-        var timeout = globalOptions.timeout;
-        if(options.timeout !== null && options.timeout !== undefined) {
-            timeout = options.timeout;
-        }
+
         if(timeout > 0) {
             setTimeout(function() {
-                if(request) {request.abort();}
+                if(request) {
+                    request.abort();
+                }
             }, timeout);
         }
 
