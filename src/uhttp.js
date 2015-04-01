@@ -333,7 +333,7 @@
         };
 
         //Iterate headers and add to xhr
-        //Order of presidence: Options, Global, Default
+        //Order of precedence: Options, Global, Default
         var mergedHeaders = {};
 
         //Default headers set to reasonable defaults (cannot be modified by user - see globalOptions & options for mutable options)
@@ -361,6 +361,7 @@
             }
         }
 
+        //Merge options together: Order of precedence is same as headers: Options, Global, Default
         var mergedOptions = {
             timeout: (options.timeout || globalOptions.timeout),
             cache: (options.cache || globalOptions.cache),
@@ -405,6 +406,13 @@
 
         var XHR = root.XMLHttpRequest || ActiveXObject;
         var request = new XHR('MSXML2.XMLHTTP.3.0');
+
+        //Set progress handler
+        if(config.options.progressHandler && request.upload) {
+            request.upload.onprogress = config.options.progressHandler;
+            //request.addEventListener('progress', config.options.progressHandler, false);
+        }
+
         request.open(config.type, config.url, true);
 
         setXHRHeaders(request, config.headers);
@@ -412,11 +420,6 @@
         //Set withCredentials option
         if(config.options.withCredentials) {
             request.withCredentials = true;
-        }
-
-        //Set progress handler
-        if(config.options.progressHandler && request.upload) {
-            request.upload.addEventListener('progress', config.options.progressHandler, false);
         }
 
         request.onreadystatechange = function () {

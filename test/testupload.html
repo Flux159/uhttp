@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Uploads</title>
+    <style>
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .upload-container {
+            width: 100%;
+            height: 180px;
+            position: relative;
+            border: 1px solid #cccccc;
+            margin: 5px;
+            /*padding: 5px;*/
+            overflow-y: auto;
+        }
+
+        .file-input {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .upload-image {
+            max-width: 120px;
+            max-height: 120px;
+        }
+
+        button {
+            display: inline-block;
+            height: 38px;
+            padding: 0 30px;
+            color: #555;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 38px;
+            letter-spacing: .1rem;
+            text-transform: uppercase;
+            text-decoration: none;
+            white-space: nowrap;
+            background-color: transparent;
+            border-radius: 4px;
+            border: 1px solid #bbb;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        button:hover {
+            border: 1px solid #000000;
+        }
+
+        hr {
+            margin-top: 3rem;
+            margin-bottom: 3.5rem;
+            border-width: 0;
+            border-top: 1px solid #E1E1E1;
+        }
+
+        .btn-block {
+            width: 100%;
+            margin: 5px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <form id="singleform">
+        <div class="upload-container" id="single-upload-container">
+            <div>Upload Single File</div>
+            <input type="file" class="file-input" id="uploadsingle">
+        </div>
+        <button class="btn btn-block" id="singleformbutton" type="button">Submit</button>
+    </form>
+
+    <hr>
+
+    <form id="multipleform">
+        <div class="upload-container" id="multiple-upload-container">
+            <div>Upload multiple files</div>
+            <input type="file" class="file-input" id="uploadmultiple" multiple>
+        </div>
+        <button class="btn btn-block" id="multipleformbutton" type="button">Submit</button>
+    </form>
+</div>
+
+<script src="/src/uhttp.js"></script>
+<script>
+    //Uploads, design, progress bar using uhttp & plain JS
+
+    //Some styling
+    var onselect = function() {
+        var files = this.files;
+
+        for(var i = 0; i < files.length; i++) {
+            var file = files[i];
+
+            if(file) {
+                if(file.type === 'image/gif' || file.type === 'image/jpeg' || file.type === 'image/png') {
+
+                    var img = new Image() || document.createElement('img');
+                    var URL = window.URL || window.webkitURL;
+                    if(URL && window.FileReader) {
+                        img.src = URL.createObjectURL(file);
+                    } else {
+                        //Add Temp image instead
+                    }
+
+                    img.setAttribute('class', 'upload-image');
+
+                    var filename = document.createElement('span');
+                    filename.innerHTML = file.name;
+
+                    var containerDiv = document.createElement('div');
+
+                    containerDiv.appendChild(img);
+                    containerDiv.appendChild(filename);
+
+                    //Add temp image to form & add file name as text element
+                    this.parentNode.appendChild(containerDiv);
+                }
+            }
+
+        }
+    };
+
+    document.getElementById('uploadsingle').onchange = onselect;
+    document.getElementById('uploadmultiple').onchange = onselect;
+
+    function submitFile(file) {
+
+        console.log(file);
+
+        var progressHandler = function(event) {
+            //Handle progress events
+            if(event.lengthComputable) {
+                var percentageLoaded = event.loaded / event.total;
+                console.log(percentageLoaded);
+            }
+        };
+
+        var formdata = new FormData();
+        formdata.append('userfile', file);
+
+        uhttp.post('/api/post/image', {progressHandler: progressHandler}, formdata).then(function(res) {
+            console.log("Success!");
+        }).catch(function(err) {
+            console.log("ERROR!");
+        });
+    }
+
+    //Submit the files using uhttp when user clicks on submit button
+    document.getElementById('singleformbutton').onclick = function() {
+        var files = document.getElementById('uploadsingle').files;
+        submitFile(files[0]);
+        return false;
+    };
+
+    document.getElementById('multipleformbutton').onclick = function() {
+        var files = document.getElementById('uploadmultiple').files;
+        for(var i = 0; i < files.length; i++) {
+            submitFile(file[i]);
+        }
+        return false;
+    };
+
+</script>
+</body>
+</html>

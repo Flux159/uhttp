@@ -324,6 +324,8 @@ describe('uhttp', function() {
     describe('POST Images/Files', function() {
 
         it('Should send the correct Image data', function(done) {
+            //TODO: Find a way to automatically test this... you can't make a File object in JS and send it and you can't "click" on an input file field and select an object like a user would
+            //For now I'm going to leave this as blank and test manually in testupload.html
             done();
         });
 

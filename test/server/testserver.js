@@ -89,7 +89,11 @@ app.route('/api/xsrf').get(function(req, res) {
 });
 
 app.route('/api/post/image').post(function(req, res) {
+    //Uses multipart/form-data & gets an image, saves it locally somewhere, then deletes it
 
+    //console.log(req.files);
+
+    return res.status(200).end();
 });
 
 app.use(express.static(path.join(__dirname, '../..')));

@@ -2,7 +2,7 @@
 
 A micro client-side ajax library modelled after angularjs's $http module that doesn't require any dependencies (jquery or otherwise). 
 
-uhttp is about 5.5kb minified and about 2.2kb minified and compressed.
+uhttp is about 6kb minified and about 2.3kb minified and compressed.
 
 uhttp supports setting headers globally for all requests and setting headers individually for each request. It also automatically parses json in responses with the appropriate content type. uhttp is based off of [atomic](https://github.com/toddmotto/atomic) and angularjs's [$http](https://github.com/angular/angular.js/blob/v1.3.x/src/ng/http.js). uhttp was written because atomic didn't support common features (setting headers & sending json POST requests) and [React](https://facebook.github.io/react/index.html) didn't come with a built in ajax library (recommending jQuery's ajax instead).
 
