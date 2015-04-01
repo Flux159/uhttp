@@ -59,9 +59,6 @@
     /**
      * Helper functions to determine request/response type
      */
-    var JSON_CONTENT_TYPE_HEADER = 'application/json;charset=utf-8';
-    var FORM_DATA_CONTENT_TYPE_HEADER = 'application/x-www-form-urlencoded';
-
     //Parse json responses
     function isObject(value) {return value !== null && typeof value === 'object';}
     function isString(value) {return value !== null && typeof value === 'string';}
@@ -82,7 +79,7 @@
         }
     }
 
-    function parse(req) {
+    function transformResponse(req) {
         var result;
         var d = req.responseText;
         try {
@@ -153,22 +150,9 @@
         return '';
     }
 
-    /**
-     * Default headers state, is overwritten by globalOptions.headers and by [, options] in each request
-     * 'application/json' and 'application/x-www-form-urlencoded' are inferred by the object passed. To override, pass a globalOption or [, options] with the request
-     */
-    var defaultHeaders = {
-        common: {
-            'Accept': 'application/json, text/plain, */*'
-        },
-        POST: {'Content-type': JSON_CONTENT_TYPE_HEADER},
-        PUT: {'Content-type': JSON_CONTENT_TYPE_HEADER},
-        PATCH: {'Content-Type': JSON_CONTENT_TYPE_HEADER}
-    };
-
     var defaultOptions = {
         transformRequest: transformRequest,
-        transformResponse: parse,
+        transformResponse: transformResponse,
         xsrfCookieName: 'XSRF-TOKEN',
         xsrfHeaderName: 'X-XSRF-TOKEN'
     };
@@ -211,18 +195,6 @@
             }
         }
     }
-
-    /**
-     * Helper function to get callback in jsonp
-     * @param name
-     * @returns {string}
-     */
-    //var getParameterByName = function(name) {
-    //    name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-    //    var regex = new RegExp('[\\?&]' + name + '=([^&#]*)'),
-    //        results = regex.exec(location.search);
-    //    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-    //};
 
     /**
      * Handle jsonp requests. See https://github.com/angular/angular.js/blob/master/src/ng/httpBackend.js
@@ -274,6 +246,13 @@
     }
 
     /**
+     * Constants for JSON content and FormData content
+     * @type {string}
+     */
+    var JSON_CONTENT_TYPE_HEADER = 'application/json;charset=utf-8';
+    var FORM_DATA_CONTENT_TYPE_HEADER = 'multipart/form-data';
+
+    /**
      * XHR Request Handling - returns Promise
      * @param type
      * @param url
@@ -287,7 +266,8 @@
 
         var methods = {
             'then': function() {},
-            'catch': function() {}
+            'catch': function() {},
+            'finally': function() {}
         };
 
         var callbacks = {
@@ -298,6 +278,10 @@
             'catch': function(callback) {
                 methods['catch'] = callback;
                 return callbacks;
+            },
+            'finally': function(callback) {
+                methods['finally'] = callback;
+                return callback;
             }
         };
 
@@ -327,13 +311,11 @@
         var mergedHeaders = {};
 
         //Default headers set to reasonable defaults (cannot be modified by user - see globalOptions & options for mutable options)
-        mergeHeaders(mergedHeaders, defaultHeaders.common);
-        if(defaultHeaders[type]) {
+        mergeHeaders(mergedHeaders, {'Accept': 'application/json, text/plain, */*'});
+        if(type === 'POST' || type === 'PUT' || type === 'PATCH') {
             if(isObject(data) && !isFile(data) && !isBlob(data)) {
                 if(!isFormData(data)) {
-                    mergeHeaders(mergedHeaders, defaultHeaders[type]);
-                } else {
-                    mergeHeaders(mergedHeaders, {'Content-Type': FORM_DATA_CONTENT_TYPE_HEADER});
+                    mergeHeaders(mergedHeaders, {'Content-Type': JSON_CONTENT_TYPE_HEADER});
                 }
             }
         }
@@ -363,7 +345,7 @@
         request.onreadystatechange = function () {
             if (request.readyState === 4) {
                 var parsedResponse = (options.transformResponse || globalOptions.transformResponse || defaultOptions.transformResponse)(request);
-                if (request.status >= 200 && request.status < 300) {
+                if ((request.status >= 200 && request.status < 300) || request.status === 304) {
                     if(type === 'GET' && cache) {
                         if(typeof cache === 'boolean') {
                             CacheFactory.get('__default').set(url, parsedResponse);
@@ -375,10 +357,11 @@
                             }
                         }
                     }
-                    methods.then.call(methods, parsedResponse);
+                    methods.then.call(methods, parsedResponse, request.status, request);
                 } else {
-                    methods['catch'].call(methods, parsedResponse);
+                    methods['catch'].call(methods, parsedResponse, request.status, request);
                 }
+                methods['finally'].call(methods, parsedResponse, request.status, request);
             }
         };
 

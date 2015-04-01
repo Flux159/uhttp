@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test runner</title>
+    <link rel="stylesheet" href="/node_modules/mocha/mocha.css">
+</head>
+<body>
+    <div id="mocha"></div>
+    <script src="/node_modules/mocha/mocha.js"></script>
+    <script>
+        mocha.setup('bdd');
+    </script>
+    <script src="/node_modules/chai/chai.js"></script>
+    <script>
+        var expect = chai.expect;
+        var assert = chai.assert;
+    </script>
+
+    <script src="/node_modules/blanket/src/blanket.js" data-cover-adapter="/node_modules/blanket/src/adapters/mocha-blanket.js" data-cover-only="['src/']"></script>
+    <script src="/node_modules/blanket/src/blanket_browser.js"></script>
+
+    <script src="/src/uhttp.js" data-cover></script>
+    <script src="/test/test.js"></script>
+    <script>
+        mocha.run();
+    </script>
+</body>
+</html>

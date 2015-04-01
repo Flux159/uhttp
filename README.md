@@ -14,9 +14,9 @@ uhttp-promises is also a 4kb library, but uses an es6-promises shim (~2.5kb) to 
 Use uhttp.get() to make a GET request. You can use either "then... catch" callbacks to obtain the response.
 
 ```javascript
-uhttp.get('/api/endpoint').then(function(data, xhr) {
+uhttp.get('/api/endpoint').then(function(res, status, xhr) {
     //Successful response
-}).catch(function(err, xhr) {
+}).catch(function(err, status, xhr) {
     //Error
 });
 
@@ -33,9 +33,9 @@ var options = {
     timeout: 3000 //3 seconds; '0' for no timeout
 };
 
-uhttp.get('/api/endpoint', options).then(function(data, xhr) {
+uhttp.get('/api/endpoint', options).then(function(res, status, xhr) {
     //Success
-}).catch(function(err, xhr) {
+}).catch(function(err, status, xhr) {
     //Error
 });
 
@@ -43,24 +43,50 @@ uhttp.get('/api/endpoint', options).then(function(data, xhr) {
 
 #### http.post(url, [,options] [,data])
 
-Use uhttp.post() to make a POST request. By default, the content type for JSON and FormData is automatically set for you. To change this, either set a global default for the "Content-Type" header, or pass it in as an option.
+Use uhttp.post() to make a POST request. By default, the content type for JSON and FormData (multipart/form-data NOT application/x-www-form-urlencoded) is automatically set for you. To change this, either set a global default for the "Content-Type" header, or pass it in as an option.
 
 ```javascript
-uhttp.post('/api/endpoint/post', {some: 'data'}).then(function(data, xhr) {
+uhttp.post('/api/endpoint/post', {some: 'data'}).then(function(res) {
     //Success
-}).catch(function(err, xhr) {
+}).catch(function(err) {
     //Error
 });
 ```
 
-Example using FormData:
+Example using FormData (Content-Type: multipart/form-data) in javascript:
 ```javascript
 var formElement = document.getElementById("myform");
 var formData = new FormData(formElement);
 formData.append("username", "cat");
-uhttp.post('api/endpoint/post', formData).then(function(data, xhr) {
+uhttp.post('/api/endpoint/post/form/multipart', formData).then(function(data) {
     //Success
-}).catch(function(err, xhr) {
+}).catch(function(err) {
+    //Error
+});
+```
+
+##### Posting x-www-form-urlencoded data
+
+Here is an example of posting x-www-form-urlencoded data. Note that if you want all requests sent with these options by default, use uhttp.setGlobalOptions (see documentation below).
+
+```javascript
+var data = {
+    content: 'Sending json object as x-www-form-urlencoded'
+};
+
+var options = {
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    transformRequest: function(data) {
+        var str = [];
+        for(var p in data) {
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(data[p]));
+        }
+        return str.join("&");
+}};
+
+uhttp.post('/api/endpoint/post/form/urlencoded', options, data).then(function(res) {
+    //Success
+}).catch(function(err) {
     //Error
 });
 ```
@@ -68,9 +94,9 @@ uhttp.post('api/endpoint/post', formData).then(function(data, xhr) {
 Example setting a custom content type:
 ```javascript
 var myCustomData = '<custom>xml</custom>';
-uhttp.post('/api/endpoint/post', {'Content-Type': 'application/xml'}, myCustomData).then(function(data, xhr) {
+uhttp.post('/api/endpoint/post', {'Content-Type': 'application/xml'}, myCustomData).then(function(res, status, xhr) {
     //Success
-}).catch(function(err, xhr) {
+}).catch(function(err, status, xhr) {
     //Error
 });
 ```
@@ -80,9 +106,9 @@ uhttp.post('/api/endpoint/post', {'Content-Type': 'application/xml'}, myCustomDa
 Use uhttp.put() to make a PUT request. The options are similar to POST requests.
 
 ```javascript
-uhttp.put('/api/endpoint/put', {some: 'data'}).then(function(data, xhr) {
+uhttp.put('/api/endpoint/put', {some: 'data'}).then(function(res, status, xhr) {
     //Success
-}).catch(function(err, xhr) {
+}).catch(function(err, status, xhr) {
     //Error
 });
 ```
@@ -92,9 +118,9 @@ uhttp.put('/api/endpoint/put', {some: 'data'}).then(function(data, xhr) {
 Use uhttp.patch() to make a PATCH request.
 
 ```javascript
-uhttp.patch('/api/endpoint/patch', {some: 'data'}).then(function(data, xhr) {
+uhttp.patch('/api/endpoint/patch', {some: 'data'}).then(function(res, status, xhr) {
     //Success
-}).catch(function(err, xhr) {
+}).catch(function(err, status, xhr) {
     //Error
 });
 ```
@@ -104,9 +130,9 @@ uhttp.patch('/api/endpoint/patch', {some: 'data'}).then(function(data, xhr) {
 Use uhttp.delete() to send a DELETE request.
 
 ```javascript
-uhttp.delete('/api/endpoint/delete').then(function(data, xhr) {
+uhttp.delete('/api/endpoint/delete').then(function(res, status, xhr) {
     //Success
-}).catch(function(err, xhr) {
+}).catch(function(err, status, xhr) {
     //Error
 });
 ```
@@ -116,9 +142,9 @@ uhttp.delete('/api/endpoint/delete').then(function(data, xhr) {
 Use uhttp.head() to send a HEAD request.
 
 ```javascript
-uhttp.head('/api/endpoint/head').then(function(data, xhr) {
+uhttp.head('/api/endpoint/head').then(function(res, status, xhr) {
     //Success
-}).catch(function(err, xhr) {
+}).catch(function(err, status, xhr) {
     //Error
 });
 ```
@@ -128,9 +154,9 @@ uhttp.head('/api/endpoint/head').then(function(data, xhr) {
 Use uhttp.jsonp() to send a JSONP request. Note that you should define the callback as 'JSON_CALLBACK'. uhttp will generate a global function attached to the window object for the duration of the request and pass its data to the then/catch functions.
 
 ```javascript
-uhttp.jsonp('/api/endpoint/jsonp?callback=JSON_CALLBACK').then(function(data, xhr) {
+uhttp.jsonp('/api/endpoint/jsonp?callback=JSON_CALLBACK').then(function(res, status, xhr) {
     //Success
-}).catch(function(err, xhr) {
+}).catch(function(res, status, xhr) {
     //Error
 });
 ```

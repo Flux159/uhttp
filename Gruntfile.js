@@ -27,6 +27,21 @@ module.exports = function(grunt) {
                 ]
             }
         },
+        shell: {
+            test: {
+                options: {
+                    stdout: true
+                },
+                command: function() {
+                    return "NODE_ENV=test node node_modules/.bin/mocha \"test/**/*.js\"";
+                }
+            },
+            testcoverage: {
+                command: function() {
+                    return "node test/server/testserver.js";
+                }
+            }
+        },
         jshint: {
             options: {
                 jshintrc: '.jshintrc',
@@ -52,6 +67,7 @@ module.exports = function(grunt) {
         }
     });
 
+    grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
@@ -60,6 +76,18 @@ module.exports = function(grunt) {
         'clean:builds',
         'jshint',
         'uglify'
+    ]);
+
+    grunt.registerTask('test', [
+        'shell:test'
+    ]);
+
+    grunt.registerTask('testcoverage', [
+        'shell:testcoverage'
+    ]);
+
+    grunt.registerTask('testbrowser', [
+
     ]);
 
 };
