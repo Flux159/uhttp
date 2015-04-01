@@ -237,7 +237,28 @@ describe('uhttp', function() {
 
     describe('Caching', function() {
 
-        it('Should cache GET requests correctly', function(done) {
+        it('Should cache and retrieve GET requests correctly', function(done) {
+
+            testSetup(function(errors, window) {
+                window.uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res, status, xhr) {
+                    assert.equal(res.data, "GET");
+
+                    window.uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res, status, xhr) {
+                        assert.equal(res.data, "GET");
+                        assert(!status);
+                        assert(!xhr);
+                        done();
+                    }).catch(function(err) {
+                        //Do nothing
+                    });
+                }).catch(function(err) {
+                    //Do nothing
+                });
+            });
+
+        });
+
+        it('Should allow users to create custom caches with cache timeouts', function(done) {
             done();
         });
 

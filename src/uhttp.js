@@ -39,22 +39,33 @@
     /**
      * The public factory that allows users to create their own caches (useful for manually manipulating cached data)
      */
-    function CacheFactory() {
-        if(typeof CacheFactory.instance === 'object') {
-            return CacheFactory.instance;
+
+    var CacheFactory = (function() {
+        var instance = null;
+        function init() {
+            var caches = {__default: new Cache('__default')};
+            return {
+                get: function(key, options) {
+                    if(caches[key]) {
+                        return caches[key];
+                    } else {
+                        var newCache = new Cache(key, options);
+                        caches[key] = newCache;
+                        return newCache;
+                    }
+                }
+            };
         }
-        this.caches = {__default: new Cache('__default')};
-        CacheFactory.instance = this;
-    }
-    CacheFactory.prototype.get = function(key, options) {
-        if(this.caches[key]) {
-            return this.caches[key];
-        } else {
-            var newCache = new Cache(key, options);
-            this.caches[key] = newCache;
-            return newCache;
-        }
-    };
+        return {
+            getFactory: function() {
+                if(!instance) {
+                    instance = init();
+                }
+                return instance;
+            }
+        };
+    })();
+    var thisCacheFactory = CacheFactory.getFactory();
 
     /**
      * Helper functions to determine request/response type
@@ -295,20 +306,24 @@
         if(type === 'GET' && cache) {
             var parsedResponse;
             if(typeof cache === 'boolean') {
-                parsedResponse = CacheFactory.get('__default').get(url);
+                parsedResponse = thisCacheFactory.get('__default').get(url);
             } else {
-                if(Object.prototype.toString.call(cache) === '[object Cache]') {
+                if(toString.call(cache) === '[object Cache]') {
                     parsedResponse = cache.get(url);
                 } else {
                     parsedResponse = cache.cache.get(url);
                 }
             }
             if(parsedResponse) {
-                return methods.then.call(methods, parsedResponse);
+                //Need to have a timeout in order to return then go to callback. I think that setIntermediate is supposed to solve this problem
+                //Note that apparently real promises have a similar issue
+                setTimeout(function() {
+                    methods.then.call(methods, parsedResponse);
+                }, 1);
+                return callbacks;
             }
         }
 
-        var aborted = false;
         var timeout = globalOptions.timeout;
         if(options.timeout !== null && options.timeout !== undefined) {
             timeout = options.timeout;
@@ -360,7 +375,7 @@
                 if ((request.status >= 200 && request.status < 300) || request.status === 304) {
                     if(type === 'GET' && cache) {
                         if(typeof cache === 'boolean') {
-                            CacheFactory.get('__default').set(url, parsedResponse);
+                            thisCacheFactory.get('__default').set(url, parsedResponse);
                         } else {
                             if(Object.prototype.toString.call(cache) === '[object Cache]') {
                                 cache.set(url, parsedResponse);
@@ -400,7 +415,7 @@
     exports.setGlobalOptions = setGlobalOptions;
     exports.getGlobalOptions = getGlobalOptions;
 
-    exports.CacheFactory = new CacheFactory();
+    exports.CacheFactory = thisCacheFactory;
 
     exports.get = function(src, options) {
         return xhr('GET', src, options);
