@@ -2,13 +2,25 @@
 
 A micro client-side ajax library modelled after angularjs's $http module that doesn't require any dependencies (jquery or otherwise). 
 
-uhttp is about 4kb minified and about 2kb minified and compressed.
+uhttp is about 5.5kb minified and about 2.2kb minified and compressed.
 
-uhttp supports setting headers globally for all requests and setting headers individually for each request. It also automatically parses json in responses with the appropriate content type. uhttp is based off of [atomic](https://github.com/toddmotto/atomic) and angularjs's [$http](https://github.com/angular/angular.js/blob/v1.3.x/src/ng/http.js). uhttp was written because atomic didn't support common features (setting headers & sending json POST requests) and [React](https://facebook.github.io/react/index.html) didn't come with a built in ajax library (recommending jQuery instead).
+uhttp supports setting headers globally for all requests and setting headers individually for each request. It also automatically parses json in responses with the appropriate content type. uhttp is based off of [atomic](https://github.com/toddmotto/atomic) and angularjs's [$http](https://github.com/angular/angular.js/blob/v1.3.x/src/ng/http.js). uhttp was written because atomic didn't support common features (setting headers & sending json POST requests) and [React](https://facebook.github.io/react/index.html) didn't come with a built in ajax library (recommending jQuery's ajax instead).
 
-Note that uhttp does not use true [promises](https://github.com/jakearchibald/es6-promise). However, uhttp-promises does use promises from es6-promise-shim. It is recommended that you use uhttp-promises for your production needs.
+Note that uhttp does not use true [promises](https://github.com/jakearchibald/es6-promise).
 
-uhttp-promises is also a 4kb library, but uses an es6-promises shim (~2.5kb) to work correctly across browsers.
+#### Downloading & Setting up
+
+TODO: Finish this
+Download the minified build here, put into your public scripts directory, and add to your webpage by adding the following tag:
+
+```
+<script type="application/javascript" src="/scripts/uhttp.min.js"></script>
+```
+
+Alternatively, you can install from bower as well:
+```
+bower install uhttp --save-dev
+```
 
 #### uhttp.get(url, [,options])
 Use uhttp.get() to make a GET request. You can use either "then... catch" callbacks to obtain the response.
@@ -22,7 +34,7 @@ uhttp.get('/api/endpoint').then(function(res, status, xhr) {
 
 ```
 
-The options supported are headers, the [with credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Requests_with_credentials) flag, and a timeout:
+You can specify options by passing an options object to any request (see the Options section for more information):
 
 ```javascript
 var options = {
@@ -76,7 +88,7 @@ var data = {
 
 var options = {
     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    transformRequest: function(data) {
+    transformRequestData: function(data) {
         var str = [];
         for(var p in data) {
             str.push(encodeURIComponent(p) + "=" + encodeURIComponent(data[p]));
@@ -144,6 +156,7 @@ Use uhttp.head() to send a HEAD request.
 ```javascript
 uhttp.head('/api/endpoint/head').then(function(res, status, xhr) {
     //Success
+    console.log(xhr.getHeader('Custom-Header'));
 }).catch(function(err, status, xhr) {
     //Error
 });
@@ -161,6 +174,95 @@ uhttp.jsonp('/api/endpoint/jsonp?callback=JSON_CALLBACK').then(function(res, sta
 });
 ```
 
+#### Xsrf
+uhttp handles setting an XSRF header for you based on the options xsrfCookieName and xsrfHeaderName options. The default options are cookieName = 'XSRF-TOKEN' and headerName = 'X-XSRF-TOKEN'. Note that uhttp takes the value of the cookie (not the name) and sets the header given by xsrfHeaderName to that value. To change these, specify the options before sending your requests:
+
+```javascript
+var globalOptions = {
+    xsrfCookieName: 'CUSTOM-COOKIE-NAME',
+    xsrfHeaderName: 'CUSTOM-HEADER-NAME'
+};
+
+uhttp.setGlobalOptions = globalOptions;
+
+uhttp.get('/xsrf/endpoint').then(function(res) {
+    //Success
+}).catch(function(err) {
+    //Error
+});
+
+```
+
+#### Example: Sending a file
+A common use case for POSTing data is to send a file to your server (like an image or video file). uhttp makes that easy by allowing you to specify a progress callback with your POST request. Note that this example uses Xhr2, which is not supported by IE8. Check [caniuse](http://caniuse.com/#feat=xhr2) for more information on browser compatibility.
+
+```javascript
+var data = new FormData();
+
+var options = {
+    progressHandler: function(event) {
+        var percentageLoaded = event.loaded / event.total;
+        document.findElementById('upload-progress-bar').setAttribute('style', 'width: ' + percentageLoaded + ';');
+    }
+};
+
+uhttp.post('/upload/endpoint', options, data).then(function(res) {
+    //Success
+}).catch(function(err) {
+    //Error
+});
+
+```
+
+#### Example: Authorization Tokens
+If your requests require tokens, you can specify them as custom headers (also note that you can set these globally for all requests by calling uhttp.setGlobalOptions(globalOptions).
+
+```javascript
+var MY_TOKEN = 'CUSTOM_AUTH_TOKEN';
+var options = {
+    headers: {
+        'Authorization': 'Bearer ' + MY_TOKEN
+    }
+};
+
+uhttp.get('/protected/api/endpoint', options).then(function(res) {
+    //Success
+}).catch(function(err) {
+    //Error
+});
+```
+
+#### Example: CORS (Cross Origin Requests)
+
+CORS is a way of sending requests to a different domain than the one you are currently browsing. CORS is enabled on a server by setting the appropriate headers on the server.
+
+SERVER PSEUDO CODE:
+```javascript
+response.header('Access-Control-Allow-Origin', 'http://example.com');
+response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+response.header('Access-Control-Allow-Headers', 'Content-Type');
+response.header('Access-Control-Allow-Credentials', true);
+```
+
+Using uhttp, if the server has required credentials (by the 'Access-Control-Allow-Credentials' header), you would need to set the withCredentials option to correctly send your request. You would also need to set any authorization headers the server requires (tokens, etc.).
+
+```javascript
+var MY_TOKEN = 'CUSTOM_AUTH_TOKEN';
+var options = {
+    headers: {
+        'Authorization': 'Bearer ' + MY_TOKEN
+    },
+    withCredentials: true
+};
+
+uhttp.get('http://subdomain.example.com/protected/api/endpoint', options).then(function(res) {
+    //Success
+}).catch(function(err) {
+    //Error
+});
+
+```
+
 #### Global Options
 
 You can set global options by using the uhttp.setGlobalOptions(options) method. Note that "global" means on each page. If you are not using a single page web application architecture, you will need to set these options in a common script across all your pages. In a single page application architecture, this works as expected after setting once.
@@ -172,9 +274,13 @@ uhttp.setGlobalOptions({
     },
     timeout: 2000, //Set timeout to 2 seconds
     withCredentials: true, //Set withCredentials on xhr requests,
-    transformRequest: function(data) {}, //Transform requests before sending
-    transformResponse: function(data) {}, //Transform returned responses
-    caching: true || [Cache object] || {cache: [Cache object], options: {timeout: 120000}} //Set whether to globally cache all requests (not recommended - use individual request options instead)
+    transformRequest: function(xhr) {}, //Transform xhr before sending (also before transformRequestData)
+    transformResponse: function(xhr) {}, //Transform xhr after response (but before transformResponseData)
+    transformRequestData: function(data) {return data;}, //Transform requests before sending
+    transformResponseData: function(data) {return data;}, //Transform returned responses
+    caching: true || [Cache object] || {cache: [Cache object], options: {timeout: 120000}}, //Set whether to globally cache all requests (not recommended - use individual request options instead)
+    xsrfCookieName: String, //The name of the cookie where you store your xsrfToken
+    xsrfHeaderName: String //The name of the header to set the xsrfToken
 });
 ```
 
@@ -191,15 +297,77 @@ The options object is the same as the globalOptions object above except it can b
 
 ###### Custom Headers
 
+```javascript
+var options = {
+    headers: {
+        'Custom': 'Header'
+    }
+};
+
+uhttp.get('/api/endpoint', options).then(function(res) {
+    //Success
+}).catch(function(err) {
+    //Error
+});
+```
+
 ###### Timeouts
+
+```javascript
+var options = {
+    timeout: 2000 //Timeout of 2 seconds
+};
+
+uhttp.get('/api/endpoint', options).then(function(res) {
+    //Success
+}).catch(function(err) {
+    //Error
+});
+```
 
 ###### With Credentials
 
-###### Transform Request
+```
+var options = {
+    withCredentials: true //Sets the withCredentials boolean to true on the xhr request (see CORS for more information)
+};
 
-###### Transform Response
+uhttp.get('/api/endpoint', options).then(function(res) {
+    //Success
+}).catch(function(err) {
+    //Error
+});
+```
+
+#### Transforming Requests, Responses, and Data
+
+uhttp lets you transform requests and responses before they're sent / after their returned (globally or per request). This is useful if you need to modify how uhttp processes its requests by default.
+
+###### Transform Request (transformRequest)
+
+To modify the xhr object that uhttp uses before sending, set the transformRequest option.
+
+###### Transform Request Data (transformRequestData)
+
+To modify the data that uhttp sends with the request, set the transformRequestData option.
+
+
+###### Transform Response (transformResponse)
+
+To modify the xhr object that uhttp uses after getting a response, set the transformResponse option.
+
+
+###### Transform Response Data (transformResponseData)
+
+To modify the data that uhttp gets after getting a response, set the transformResponseData option.
 
 ###### Caching
+
+uhttp provides a basic caching mechanism where you can cache your GET responses (no xhr request is sent). By default, setting the cache option to true enables this and uses uhttp's default cache. If you need a custom cache object, you can use uhttp's CacheFactory to create a custom cache object that you can manually clear and set timeouts for.
+
+###### Cookies Helpers
+
+uhttp exposes its cookie helper functions as uhttp.getCookie() and uhttp.setCookie(). These can be helpful if you need to check or change cookie values in your app.
 
 #### Development, Testing, & Building
 
@@ -209,23 +377,9 @@ uhttp is developed using a nodejs environment. Make sure that you have nodejs an
 npm install && grunt build
 ```
 
-That will install all dependencies for development, run uhttp's tests, generate code coverage metrics and documentation, and build a minified version of uhttp in the dist directory.
+That will install all dependencies for development, run uhttp's tests, and build a minified version of uhttp in the dist directory.
 
 If you have bug fixes that you want merged into uhttp, submit a pull request on the github repository.
-
-# TODO
-- [x] Basic ajax requests (get, post, put, delete) - done
-- [x] XSRF Cookie / Header - done
-- [x] Timeouts - done
-- [x] withCredentials - done
-- [x] PATCH, HEAD, and JSONP requests - done
-- [x] Transform Requests / Responses
-- [x] Basic Caching (& timed caches)
-- [ ] Finish Testing
-- [x] Fix up JSONP
-- [x] Building / Build Setup - done
-- [ ] Finish Readme, setup github.io site
-- [ ] Installing with bower
 
 Installing with Bower:
 

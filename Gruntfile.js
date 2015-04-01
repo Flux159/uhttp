@@ -3,6 +3,9 @@
 module.exports = function(grunt) {
 
     grunt.initConfig({
+
+        packageJson: grunt.file.readJSON('package.json') || {},
+
         clean: {
             builds: {
                 files: [
@@ -64,10 +67,22 @@ module.exports = function(grunt) {
                     }
                 ]
             }
+        },
+        usebanner: {
+            dist: {
+                options: {
+                    position: 'top',
+                    banner: '/*! <%= packageJson.name %> v<%= packageJson.version %> | (c) <%= grunt.template.today(\'yyyy\') %> @flux159 | <%= packageJson.homepage %> */'
+                },
+                files: {
+                    src: ['dist/uhttp.min.js']
+                }
+            }
         }
     });
 
     grunt.loadNpmTasks('grunt-shell');
+    grunt.loadNpmTasks('grunt-banner');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
@@ -75,7 +90,8 @@ module.exports = function(grunt) {
     grunt.registerTask('build', [
         'clean:builds',
         'jshint',
-        'uglify'
+        'uglify',
+        'usebanner'
     ]);
 
     grunt.registerTask('test', [

@@ -82,7 +82,15 @@
     /**
      * Default transforming of requests and responses (can be overrided by setting globalOptions)
      */
-    function transformRequest(d) {
+    function transformRequest(xhr) {
+        return xhr;
+    }
+
+    function transformResponse(xhr) {
+        return xhr;
+    }
+
+    function transformRequestData(d) {
         if(isObject(d) && !isFile(d) && !isBlob(d) && !isFormData(d)) {
             return JSON.stringify(d);
         } else {
@@ -90,7 +98,7 @@
         }
     }
 
-    function transformResponse(req) {
+    function transformResponseData(req) {
         var result;
         var d = req.responseText;
         try {
@@ -161,9 +169,28 @@
         return '';
     }
 
+    /**
+     * A function to set a cookie from the browser.
+     * Obtained from here: http://www.w3schools.com/js/js_cookies.asp
+     * @param cname
+     * @param cvalue
+     * @param exdays
+     */
+    function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays*24*60*60*1000));
+        var expires = 'expires='+d.toUTCString();
+        document.cookie = cname + '=' + cvalue + '; ' + expires;
+    }
+
+    /**
+     * Default options
+     */
     var defaultOptions = {
         transformRequest: transformRequest,
         transformResponse: transformResponse,
+        transformRequestData: transformRequestData,
+        transformResponseData: transformResponseData,
         xsrfCookieName: 'XSRF-TOKEN',
         xsrfHeaderName: 'X-XSRF-TOKEN'
     };
@@ -355,7 +382,7 @@
         //If same domain, set XSRF-Header to XSRF-Cookie
         if(urlIsSameOrigin(url)) {
             var xsrfHeader = {};
-            var xsrfValue = getCookie((options.xsrfCookieName || globalOptions.xsrfHeaderName || defaultOptions.xsrfCookieName));
+            var xsrfValue = getCookie((options.xsrfCookieName || globalOptions.xsrfCookieName || defaultOptions.xsrfCookieName));
             if(xsrfValue) {
                 xsrfHeader[(options.xsrfHeaderName || globalOptions.xsrfHeaderName || defaultOptions.xsrfHeaderName)] = xsrfValue;
                 mergeHeaders(mergedHeaders, xsrfHeader);
@@ -369,9 +396,16 @@
             request.withCredentials = true;
         }
 
+        //Set progress handler
+        var progressHandler = (options.progressHandler || globalOptions.progressHandler);
+        if(progressHandler && request.upload) {
+            request.upload.addEventListener('progress', progressHandler, false);
+        }
+
         request.onreadystatechange = function () {
             if (request.readyState === 4) {
-                var parsedResponse = (options.transformResponse || globalOptions.transformResponse || defaultOptions.transformResponse)(request);
+                (options.transformResponse || globalOptions.transformResponse || defaultOptions.transformResponse)(request);
+                var parsedResponse = (options.transformResponseData || globalOptions.transformResponseData || defaultOptions.transformResponseData)(request);
                 if ((request.status >= 200 && request.status < 300) || request.status === 304) {
                     if(type === 'GET' && cache) {
                         if(typeof cache === 'boolean') {
@@ -392,7 +426,8 @@
             }
         };
 
-        request.send((options.transformRequest || globalOptions.transformRequest || defaultOptions.transformRequest)(data));
+        (options.transformRequest || globalOptions.transformRequest || defaultOptions.transformRequest)(request);
+        request.send((options.transformRequestData || globalOptions.transformRequestData || defaultOptions.transformRequestData)(data));
 
         //Timeout handling
 
@@ -416,6 +451,9 @@
     exports.getGlobalOptions = getGlobalOptions;
 
     exports.CacheFactory = thisCacheFactory;
+
+    exports.getCookie = getCookie;
+    exports.setCookie = setCookie;
 
     exports.get = function(src, options) {
         return xhr('GET', src, options);

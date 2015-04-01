@@ -108,7 +108,7 @@ describe('uhttp', function() {
                 };
                 var options = {
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    transformRequest: function(data) {
+                    transformRequestData: function(data) {
                         var str = [];
                         for(var p in data) {
                             str.push(encodeURIComponent(p) + "=" + encodeURIComponent(data[p]));
@@ -258,7 +258,7 @@ describe('uhttp', function() {
 
         });
 
-        it('Should allow users to create custom caches with cache timeouts', function(done) {
+        it('Should allow users to create custom caches with cache timeouts and clearing capabilities', function(done) {
             done();
         });
 
@@ -278,6 +278,18 @@ describe('uhttp', function() {
             done();
         });
 
+    });
+
+    describe('Authentication Tokens', function() {
+
+        it('Should properly set an authentication token', function(done) {
+            done();
+        });
+
+    });
+
+    describe('Interceptors', function() {
+        //TODO: Intercept the actual request? Not just the data?
     });
 
     describe('CORS', function() {
@@ -319,7 +331,7 @@ describe('uhttp', function() {
 
             testSetup(function(errors, window) {
                 var globalOptions = {
-                    transformResponse: function(data) {
+                    transformResponseData: function(data) {
                         return {content: 'changed!'};
                     }
                 };
