@@ -1,6 +1,6 @@
 # uhttp
 
-A micro client-side ajax library modelled after angularjs's $http module that doesn't require any dependencies (jquery or otherwise). 
+A micro client-side ajax library modeled after angularjs's $http module that doesn't require any dependencies (jquery or otherwise).
 
 uhttp is about 6kb minified and about 2.3kb minified and compressed.
 
@@ -18,7 +18,7 @@ Download the minified build [here](), put into your public scripts directory, an
 
 Alternatively, you can install from bower as well:
 ```
-bower install uhttp --save-dev
+bower install uhttp --save
 ```
 
 #### uhttp.get(url, [,options])
@@ -243,7 +243,7 @@ uhttp.get('/protected/api/endpoint', options).then(function(res) {
 
 CORS is a way of sending requests to a different domain than the one you are currently browsing. CORS is enabled on a server by setting the appropriate headers on the server.
 
-SERVER PSEUDO CODE:
+Server pseudo code:
 ```javascript
 response.header('Access-Control-Allow-Origin', 'http://example.com');
 response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
@@ -476,14 +476,6 @@ npm install && grunt build
 That will install all dependencies for development, run uhttp's tests, and build a minified version of uhttp in the dist directory.
 
 If you have bug fixes that you want merged into uhttp, submit a pull request on the github repository.
-
-Installing with Bower:
-
-uhttp is a client side library that can be installed with bower, a dependency management system for client side javascript. Simply run the following (if you have bower installed):
-
-```
-bower install uhttp --save
-```
 
 LICENSE
 -----
