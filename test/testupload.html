@@ -106,48 +106,7 @@
 <script>
     //Uploads, design, progress bar using uhttp & plain JS
 
-    //Some styling
-    var onselect = function() {
-        var files = this.files;
-
-        for(var i = 0; i < files.length; i++) {
-            var file = files[i];
-
-            if(file) {
-                if(file.type === 'image/gif' || file.type === 'image/jpeg' || file.type === 'image/png') {
-
-                    var img = new Image() || document.createElement('img');
-                    var URL = window.URL || window.webkitURL;
-                    if(URL && window.FileReader) {
-                        img.src = URL.createObjectURL(file);
-                    } else {
-                        //Add Temp image instead
-                    }
-
-                    img.setAttribute('class', 'upload-image');
-
-                    var filename = document.createElement('span');
-                    filename.innerHTML = file.name;
-
-                    var containerDiv = document.createElement('div');
-
-                    containerDiv.appendChild(img);
-                    containerDiv.appendChild(filename);
-
-                    //Add temp image to form & add file name as text element
-                    this.parentNode.appendChild(containerDiv);
-                }
-            }
-
-        }
-    };
-
-    document.getElementById('uploadsingle').onchange = onselect;
-    document.getElementById('uploadmultiple').onchange = onselect;
-
     function submitFile(file) {
-
-        console.log(file);
 
         var progressHandler = function(event) {
             //Handle progress events
@@ -181,6 +140,49 @@
         }
         return false;
     };
+
+    //Some styling for when the user selects images
+    var onselect = function() {
+        var files = this.files;
+
+        for(var i = 0; i < files.length; i++) {
+            var file = files[i];
+
+            if(file) {
+
+                var containerDiv = document.createElement('div');
+
+                var filename = document.createElement('span');
+                filename.innerHTML = file.name;
+
+                if(file.type === 'image/gif' || file.type === 'image/jpeg' || file.type === 'image/png') {
+
+                    var img = new Image() || document.createElement('img');
+                    var URL = window.URL || window.webkitURL;
+                    if(URL && window.FileReader) {
+                        img.src = URL.createObjectURL(file);
+                    } else {
+                        //Add Temp image instead
+                    }
+
+                    img.setAttribute('class', 'upload-image');
+
+
+                    containerDiv.appendChild(img);
+                    containerDiv.appendChild(filename);
+
+                    //Add temp image to form & add file name as text element
+                    this.parentNode.appendChild(containerDiv);
+                } else {
+                    containerDiv.appendChild(filename);
+                    this.parentNode.appendChild(containerDiv);
+                }
+            }
+        }
+    };
+
+    document.getElementById('uploadsingle').onchange = onselect;
+    document.getElementById('uploadmultiple').onchange = onselect;
 
 </script>
 </body>

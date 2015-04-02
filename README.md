@@ -10,8 +10,7 @@ Note that uhttp does not use true [promises](https://github.com/jakearchibald/es
 
 #### Downloading & Setting up
 
-TODO: Finish this
-Download the minified build here, put into your public scripts directory, and add to your webpage by adding the following tag:
+Download the minified build [here](), put into your public scripts directory, and add to your webpage by adding the following tag:
 
 ```
 <script type="application/javascript" src="/scripts/uhttp.min.js"></script>
@@ -194,15 +193,23 @@ uhttp.get('/xsrf/endpoint').then(function(res) {
 ```
 
 #### Example: Sending a file
-A common use case for POSTing data is to send a file to your server (like an image or video file). uhttp makes that easy by allowing you to specify a progress callback with your POST request. Note that this example uses Xhr2, which is not supported by IE8. Check [caniuse](http://caniuse.com/#feat=xhr2) for more information on browser compatibility.
+A common use case for POSTing data is to send a file to your server (like an image or video file). uhttp makes that easy by allowing you to specify a progress callback with your POST request. Note that this example uses Xhr2, which is not supported by IE8. Check [caniuse](http://caniuse.com/#feat=xhr2) for more information on browser compatibility. For a full example, see the example in /test/testupload.html
 
 ```javascript
+
+var files = document.getElementById('upload-input-element').files;
+
+var file = files[0];
+
 var data = new FormData();
+data.append('userfile', file);
 
 var options = {
     progressHandler: function(event) {
-        var percentageLoaded = event.loaded / event.total;
-        document.findElementById('upload-progress-bar').setAttribute('style', 'width: ' + percentageLoaded + ';');
+        if(event.lengthComputable) {
+            var percentageLoaded = event.loaded / event.total;
+            document.findElementById('upload-progress-bar').setAttribute('style', 'width: ' + percentageLoaded + ';');
+        }
     }
 };
 
@@ -325,49 +332,138 @@ uhttp.get('/api/endpoint', options).then(function(res) {
 });
 ```
 
-###### With Credentials
+#### Transforming Requests, Responses, and Data
 
-```
+uhttp lets you transform requests and responses before they're sent / after their returned (globally or per request). This is useful if you need to modify how uhttp processes its requests by default.
+
+###### Transform Request (transformRequest) & Transform Response (transformResponse)
+
+To modify the xhr object that uhttp uses before sending, set the transformRequest option.
+
+```javascript
 var options = {
-    withCredentials: true //Sets the withCredentials boolean to true on the xhr request (see CORS for more information)
+    transformRequest: function(config) {
+        //Changes the source of the request
+        config.src = 'http://localhost:43760/api/get/again';
+
+        return config;
+    },
+    transformResponse: function(xhr) {
+        //Changes the response
+        xhr.responseText = '{"data": "Man in the middle!"}';
+    }
 };
 
-uhttp.get('/api/endpoint', options).then(function(res) {
+window.uhttp.get('http://localhost:43760/api/get', options).then(function(res) {
+    console.log(res.data); //prints "Man in the middle!"
+}).catch(function(err) {
+    //Do nothing
+}).finally(function() {
+    done();
+});
+```
+
+###### Transform Request Data (transformRequestData)
+
+To modify the data that uhttp sends with the request, set the transformRequestData option. This is necessary if you're sending x-www-form-urlencoded data.
+
+```javascript
+var data = {
+    content: 'Sending json object as x-www-form-urlencoded'
+};
+
+var options = {
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    transformRequestData: function(data) {
+        var str = [];
+        for(var p in data) {
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(data[p]));
+        }
+        return str.join("&");
+}};
+
+uhttp.post('/api/endpoint/post/form/urlencoded', options, data).then(function(res) {
     //Success
 }).catch(function(err) {
     //Error
 });
 ```
 
-#### Transforming Requests, Responses, and Data
-
-uhttp lets you transform requests and responses before they're sent / after their returned (globally or per request). This is useful if you need to modify how uhttp processes its requests by default.
-
-###### Transform Request (transformRequest)
-
-To modify the xhr object that uhttp uses before sending, set the transformRequest option.
-
-###### Transform Request Data (transformRequestData)
-
-To modify the data that uhttp sends with the request, set the transformRequestData option.
-
-
-###### Transform Response (transformResponse)
-
-To modify the xhr object that uhttp uses after getting a response, set the transformResponse option.
-
-
 ###### Transform Response Data (transformResponseData)
 
 To modify the data that uhttp gets after getting a response, set the transformResponseData option.
 
+```javascript
+//This is the default transformResponseData that uhttp uses to parse JSON responses
+var options = {
+    transformResponseData: function(req) {
+        var result;
+        var d = req.responseText;
+        try {
+            result = JSON.parse(d);
+        } catch(e) {
+            result = d;
+        }
+        return result;
+    }
+}
+
+window.uhttp.get('http://localhost:43760/api/get', options).then(function(res) {
+    console.log(res.data);
+}).catch(function(err) {
+    //Do nothing
+}).finally(function() {
+    done();
+});
+
+```
+
 ###### Caching
 
-uhttp provides a basic caching mechanism where you can cache your GET responses (no xhr request is sent). By default, setting the cache option to true enables this and uses uhttp's default cache. If you need a custom cache object, you can use uhttp's CacheFactory to create a custom cache object that you can manually clear and set timeouts for.
+uhttp provides a basic caching mechanism where you can cache your GET responses (no xhr request is sent). By default, setting the cache option to true enables this and uses uhttp's default cache. If you need a custom cache object, you can use uhttp's CacheFactory to create a custom cache object that you can manually clear and set timeouts for. Note: Caching only works for GET requests.
+
+```javascript
+uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res, status, xhr) {
+    //Sends xhr request
+   uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res, status, xhr) {
+        //From javascript cache, no xhr request sent
+   }).catch(function(err) {
+        //Do nothing
+   });
+}).catch(function(err) {
+    //Do nothing
+});
+```
+
+Custom cache objects:
+
+```javascript
+var cacheFactory = uhttp.CacheFactory;
+var blogCache = cacheFactory.get('blogCache');
+
+blogCache.put('firstpost','My blog');
+blogCache.put('secondpost', 'stuff');
+blogCache.delete('firstpost');
+blogCache.get('secondpost');
+blogCache.clear();
+
+//You can pass this cache to uhttp's cache option as well!
+uhttp.get('http://localhost:43760/api/get', {cache: blogCache}).then(function(res, status, xhr) {
+    //Data is cached in blogCache w/ url as key (you now have control of when to delete from the cache)
+});
+
+```
 
 ###### Cookies Helpers
 
 uhttp exposes its cookie helper functions as uhttp.getCookie() and uhttp.setCookie(). These can be helpful if you need to check or change cookie values in your app.
+
+```javascript
+uhttp.setCookie('mycookie', 'yum'); //Sets mycookie to 'yum'
+uhttp.setCookie('othercookie', 'yay!', 365); //Set cookie for 365 days
+console.log(uhttp.getCookie('mycookie')); //'yum'
+console.log(uhttp.getCookie('othercookie')); //'yay!'
+```
 
 #### Development, Testing, & Building
 
@@ -413,6 +509,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-
-

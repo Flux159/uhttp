@@ -42,7 +42,6 @@
     /**
      * The public factory that allows users to create their own caches (useful for manually manipulating cached data)
      */
-
     var CacheFactory = (function() {
         var instance = null;
         function init() {
@@ -83,7 +82,7 @@
     function isFormData(obj) {return toString.call(obj) === '[object FormData]';}
 
     /**
-     * Default transforming of requests and responses (can be overrided by setting globalOptions)
+     * Default transforming of requests and responses (can be overrided by setting individual request options or uhttp globalOptions)
      */
     function transformRequest(config) {
         return config;
@@ -229,6 +228,11 @@
         }
     }
 
+    /**
+     * A function to set headers on a xhr request object
+     * @param request
+     * @param headerObject
+     */
     function setXHRHeaders(request, headerObject) {
         for(var h in headerObject) {
             if(headerObject.hasOwnProperty(h)) {
@@ -267,9 +271,11 @@
             }
         };
 
+        //Creating a callback function and a script element
         var callbackId = 'uhttp_callback_' + new Date().getTime() + '_' + Math.round(Math.random() * 1e16).toString(36);
         var script = document.createElement('script');
 
+        //Success callback
         window[callbackId] = function(res) {
             script.parentNode.removeChild(script);
             window[callbackId] = undefined;
@@ -277,6 +283,7 @@
             methods.finally.call(methods, res);
         };
 
+        //Error callback
         script.onerror = function(e) {
             script.parentNode.removeChild(script);
             window[callbackId] = undefined;
@@ -287,14 +294,14 @@
         //Find JSON_CALLBACK in url & replace w/ callbackId function
         script.src = url.replace('JSON_CALLBACK', callbackId);
 
-        //Create script, run async, & call callback when complete
+        //Appending the script element to the document
         document.body.appendChild(script);
 
         return callbacks;
     }
 
     /**
-     * Constants for JSON content and FormData content
+     * Constant for JSON content
      * @type {string}
      */
     var JSON_CONTENT_TYPE_HEADER = 'application/json;charset=utf-8';
@@ -373,6 +380,8 @@
             transformResponseData: (options.transformResponseData || globalOptions.transformResponseData || defaultOptions.transformResponseData)
         };
 
+        //A config object that can be modified by the user via a transformRequest function (globally or per request)
+        //Note that no xhr request has been created yet
         var config = {
             headers: mergedHeaders,
             options: mergedOptions,
@@ -404,17 +413,18 @@
             }
         }
 
+        //Create XHR request
         var XHR = root.XMLHttpRequest || ActiveXObject;
         var request = new XHR('MSXML2.XMLHTTP.3.0');
 
-        //Set progress handler
+        //Set progress handler (must be done before calling request.open)
         if(config.options.progressHandler && request.upload) {
             request.upload.onprogress = config.options.progressHandler;
-            //request.addEventListener('progress', config.options.progressHandler, false);
         }
 
         request.open(config.type, config.url, true);
 
+        //Set headers (must be done after request.open)
         setXHRHeaders(request, config.headers);
 
         //Set withCredentials option
@@ -422,6 +432,7 @@
             request.withCredentials = true;
         }
 
+        //The event listener for when the xhr request changes state (readyState = 4 means completed - either successfully or w/ an error)
         request.onreadystatechange = function () {
             if (request.readyState === 4) {
                 config.options.transformResponse(request);
@@ -446,10 +457,10 @@
             }
         };
 
-        //(options.transformRequest || globalOptions.transformRequest || defaultOptions.transformRequest)(request);
+        //Send any data (only valid for POST, PUT, PATCH)
         request.send(config.options.transformRequestData(data));
 
-        //Timeout handling
+        //Timeout handling (abort request after timeout time in milliseconds)
         if(config.options.timeout > 0) {
             setTimeout(function() {
                 if(request) {
@@ -466,14 +477,18 @@
      */
     var exports = {};
 
+    //Getter/Setter for Global options (across all uhttp requests on a single page)
     exports.setGlobalOptions = setGlobalOptions;
     exports.getGlobalOptions = getGlobalOptions;
 
+    //Export CacheFactory to allow user more control over caches
     exports.CacheFactory = thisCacheFactory;
 
+    //Export get/setCookie because they are helper functions used by uhttp and could be useful for a user
     exports.getCookie = getCookie;
     exports.setCookie = setCookie;
 
+    //Export actual ajax request methods
     exports.get = function(src, options) {
         return xhr('GET', src, options);
     };
@@ -510,6 +525,7 @@
         return xhr('DELETE', src, options);
     };
 
+    //Jsonp method is unique from the rest (doesn't use xhr, creates a script element)
     exports.jsonp = function(src, options) {
         return jsonp(src, options);
     };
