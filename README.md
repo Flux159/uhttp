@@ -10,7 +10,7 @@ Note that uhttp does not use true [promises](https://github.com/jakearchibald/es
 
 #### Downloading & Setting up
 
-Download the minified build [here](), put into your public scripts directory, and add to your webpage by adding the following tag:
+Download the minified build [here](https://raw.githubusercontent.com/Flux159/uhttp/master/dist/uhttp.min.js), put into your public scripts directory, and add to your webpage by adding the following tag:
 
 ```
 <script type="application/javascript" src="/scripts/uhttp.min.js"></script>
