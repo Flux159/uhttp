@@ -52,7 +52,7 @@ uhttp.get('/api/endpoint', options).then(function(res, status, xhr) {
 
 ```
 
-#### http.post(url, [,options] [,data])
+#### uhttp.post(url, [,options] [,data])
 
 Use uhttp.post() to make a POST request. By default, the content type for JSON and FormData (multipart/form-data NOT application/x-www-form-urlencoded) is automatically set for you. To change this, either set a global default for the "Content-Type" header, or pass it in as an option.
 
