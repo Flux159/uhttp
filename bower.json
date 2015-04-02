@@ -1,5 +1,5 @@
 {
-  "name": "http",
+  "name": "uhttp",
   "version": "1.0.0",
   "main": "src/uhttp.js",
   "ignore": [
