@@ -9,9 +9,11 @@
     } else {
         root.uhttp = factory(root);
     }
-})(this, function(root) {
+})(this, function() {
 
     'use strict';
+
+    var thisWindow = window;
 
     /**
      * A basic cache that stores requests and responses. Supports timeouts as well
@@ -147,7 +149,7 @@
         };
     }
 
-    var originUrl = urlResolve(window.location.href);
+    var originUrl = urlResolve(thisWindow.location.href);
 
     function urlIsSameOrigin(requestUrl) {
         var parsed = (isString(requestUrl)) ? urlResolve(requestUrl) : requestUrl;
@@ -294,9 +296,9 @@
         var script = document.createElement('script');
 
         //Success callback
-        window[callbackId] = function(res) {
+        thisWindow[callbackId] = function(res) {
             script.parentNode.removeChild(script);
-            window[callbackId] = undefined;
+            thisWindow[callbackId] = undefined;
             methods.then.call(methods, res);
             methods['finally'].call(methods, res);
         };
@@ -304,7 +306,7 @@
         //Error callback
         script.onerror = function(e) {
             script.parentNode.removeChild(script);
-            window[callbackId] = undefined;
+            thisWindow[callbackId] = undefined;
             methods['catch'].call(methods, e);
             methods['finally'].call(methods, e);
         };
@@ -432,7 +434,7 @@
         }
 
         //Create XHR request
-        var XHR = root.XMLHttpRequest || ActiveXObject;
+        var XHR = thisWindow.XMLHttpRequest || ActiveXObject;
         var request = new XHR('MSXML2.XMLHTTP.3.0');
 
         //Set progress handler (must be done before calling request.open)
