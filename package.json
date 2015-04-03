@@ -1,9 +1,15 @@
 {
   "name": "uhttp",
-  "description": "A micro http client side library",
-  "version": "1.0.0",
+  "description": "A micro ajax http library with a unified api for browsers and nodejs",
+  "version": "1.1.0",
   "repository": "https://github.com/Flux159/uhttp",
-  "homepage": "https://flux159.github.io/uhttp",
+  "homepage": "http://flux159.github.io/uhttp/",
+  "keywords": [
+    "ajax",
+    "http",
+    "nodejs",
+    "client"
+  ],
   "private": true,
   "scripts": {
     "test": "NODE_ENV=test node node_modules/.bin/mocha \"test/**/*.js\"",

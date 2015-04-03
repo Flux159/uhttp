@@ -41,7 +41,7 @@ module.exports = function(grunt) {
             },
             testcoverage: {
                 command: function() {
-                    return "node test/server/testserver.js";
+                    return "node test/api/testapi.js";
                 }
             }
         },
@@ -100,10 +100,6 @@ module.exports = function(grunt) {
 
     grunt.registerTask('testcoverage', [
         'shell:testcoverage'
-    ]);
-
-    grunt.registerTask('testbrowser', [
-
     ]);
 
 };

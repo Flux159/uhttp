@@ -1,6 +1,6 @@
 # uhttp
 
-A micro client-side ajax library modeled after angularjs's $http module that doesn't require any dependencies (jquery or otherwise).
+A micro ajax library modeled after angularjs's $http module that doesn't require any dependencies (jquery or otherwise). As of version 1.1.0, uhttp runs in browsers as well as in nodejs.
 
 uhttp is about 6kb minified and about 2.3kb minified and compressed.
 

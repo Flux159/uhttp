@@ -1,36 +1,16 @@
-var assert, testserver;
+var assert = require('assert');
 
-//Some differences in setup between running in nodejs vs running in a browser. You run the same tests by running grunt testbrowser.
-var isNode = (typeof window !== 'object');
-var testSetup;
-if(isNode) {
-    assert = require('assert');
+var testserver = require('./api/testapi');
 
-    testserver = require('./api/testapi');
-    var path = require('path');
+var uhttp = require('../lib/uhttp-server');
 
-    var jsdom = require('jsdom');
+//I'm too lazy to modify the client side tests, so "mock" window & testSetup
+var window = {uhttp: uhttp};
+var testSetup = function(callback) {
+    callback(null, window);
+};
 
-    testSetup = function(callback) {
-        jsdom.env({
-            html: '<html><body></body></html>',
-            scripts: [
-                path.join(__dirname, '../src/uhttp.js')
-            ],
-            features: {
-                FetchExternalResources: ["script"],
-                ProcessExternalResources: ["script"]
-            },
-            done: callback
-        });
-    };
-} else {
-    testSetup = function(callback) {
-        callback(null, window);
-    };
-}
-
-describe('uhttp', function() {
+describe('uhttp-server', function() {
 
     describe('GET', function() {
 
@@ -82,23 +62,6 @@ describe('uhttp', function() {
                     done();
                 });
             });
-        });
-
-        it('Should send a POST request with FormData data correctly (multipart)', function(done) {
-            if(isNode) {
-                done(); //jsdom doesn't support FormData, test in browser
-            } else {
-                testSetup(function(errors, window) {
-
-                    var formData = new FormData();
-                    formData.append('content', 'Testing POST form');
-
-                    window.uhttp.post('http://localhost:43760/api/post/form', formData).then(function(res) {
-                        assert(res.data, "POST FORM");
-                        done();
-                    });
-                });
-            }
         });
 
         it('Should send a POST request with form data correctly (urlencoded)', function(done) {
@@ -165,6 +128,7 @@ describe('uhttp', function() {
             });
         });
 
+
     });
 
     describe('PATCH', function() {
@@ -213,23 +177,19 @@ describe('uhttp', function() {
     describe('Timeouts', function() {
 
         it('Should handle timeouts correctly', function(done) {
-            if(isNode) {
-                done(); //Aborting xhr requests seems to be iffy in jsdom
-            } else {
-                testSetup(function(errors, window) {
+            testSetup(function(errors, window) {
 
-                    window.uhttp.get('http://localhost:43760/api/timeout').then(function(res) {
-                        assert.equal(res.data, 'timein');
+                window.uhttp.get('http://localhost:43760/api/timeout').then(function(res) {
+                    assert.equal(res.data, 'timein');
 
-                        window.uhttp.get('http://localhost:43760/api/timeout', {timeout: 250}).then(function(res) {
-                            //Do nothing (timeout sleeps for 1 second, so this should abort/give an error)
-                        }).catch(function(err) {
-                            done();
-                        });
-
+                    window.uhttp.get('http://localhost:43760/api/timeout', {timeout: 250}).then(function(res) {
+                        //Do nothing (timeout sleeps for 1 second, so this should abort/give an error)
+                    }).catch(function(err) {
+                        done();
                     });
+
                 });
-            }
+            });
         });
 
     });
@@ -302,33 +262,21 @@ describe('uhttp', function() {
 
     });
 
-    describe('XSRF', function() {
+    //TODO: Write tests for cookies & XSRF Token handling (should have an option to use your own cookie-jar or the global uhttp one)
 
-        it('Should send the correct XSRF Cookie', function(done) {
+    describe('Cookies', function() {
+        it('Should correctly handle getting and setting cookies', function(done) {
             testSetup(function(errors, window) {
+                window.uhttp.setCookie('mycookie', 'yum');
+                window.uhttp.setCookie('othercookie', 'yay!', 365); //Set cookie for 365 days
 
-                window.uhttp.setCookie('XSRF-TOKEN', 'MY_XSRF_TOKEN');
+                //console.log(window.uhttp.getCookie());
 
-                window.uhttp.get('http://localhost:43760/api/xsrf').then(function(res) {
-                    assert(res.data, 'Correct xsrf token');
-                }).catch(function(err) {
-                    //Do nothing
-                }).finally(function() {
-                    done();
-                });
+                assert(window.uhttp.getCookie('mycookie'), 'yum');
+                assert(window.uhttp.getCookie('othercookie'), 'yay!');
+                done();
             });
         });
-
-    });
-
-    describe('POST Images/Files', function() {
-
-        it('Should send the correct Image data', function(done) {
-            //TODO: Find a way to automatically test this... you can't make a File object in JS and send it and you can't "click" on an input file field and select an object like a user would
-            //For now I'm going to leave this as blank and test manually in testupload.html
-            done();
-        });
-
     });
 
     describe('Interceptors', function() {
@@ -359,51 +307,6 @@ describe('uhttp', function() {
         });
     });
 
-    describe('Cookies', function() {
-        it('Should correctly handle getting and setting cookies', function(done) {
-            testSetup(function(errors, window) {
-                window.uhttp.setCookie('mycookie', 'yum');
-                window.uhttp.setCookie('othercookie', 'yay!', 365); //Set cookie for 365 days
-                assert(window.uhttp.getCookie('mycookie'), 'yum');
-                assert(window.uhttp.getCookie('othercookie'), 'yay!');
-                done();
-            });
-        });
-    });
-
-    describe('CORS', function() {
-
-        it('Should send CORS requests correctly when CORS is enabled on server', function(done) {
-            if(isNode) {
-                done(); //jsdom doesn't support CORS requests via its XHRHttpRequests
-            } else {
-                testSetup(function(errors, window) {
-                    window.uhttp.get('http://localhost:43761/api/cors').then(function(res) {
-                        assert.equal(res.data, "CORS");
-                        done();
-                    }).catch(function(err) {
-                        //Do nothing
-                    });
-                });
-            }
-        });
-
-        it('Should return an error when CORS requests are not allowed from this client', function(done) {
-            if(isNode) {
-                done(); //jsdom doesn't support CORS requests via its XHRHttpRequests
-            } else {
-                testSetup(function(errors, window) {
-                    window.uhttp.get('http://localhost:43761/api/cors/fail').then(function(res) {
-                        //Do nothing
-                    }).catch(function(err, status, xhr) {
-                        done();
-                    });
-                });
-            }
-        });
-
-    });
-
     //Note: These global options change all responses to 'changed!', keep them last
     describe('Global Options', function() {
         it('Should set global options across multiple requests', function(done) {
@@ -430,3 +333,4 @@ describe('uhttp', function() {
     });
 
 });
+

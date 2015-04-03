@@ -1,3 +1,6 @@
+/**
+ * Client side uhttp
+ */
 (function(root,factory) {
     if(typeof define === 'function' && define.amd) {
         define(factory);
@@ -159,16 +162,20 @@
      * @returns {string}
      */
     function getCookie(cname) {
-        var name = cname + '=';
-        var ca = document.cookie.split(';');
-        for(var i=0; i<ca.length; i++) {
-            var c = ca[i];
-            while (c.charAt(0) ===' ') {
-                c = c.substring(1);
+        if(cname) {
+            var name = cname + '=';
+            var ca = document.cookie.split(';');
+            for(var i=0; i<ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) ===' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) === 0) {return c.substring(name.length,c.length);}
             }
-            if (c.indexOf(name) === 0) {return c.substring(name.length,c.length);}
+            return '';
+        } else {
+            return document.cookie;
         }
-        return '';
     }
 
     /**
@@ -179,10 +186,21 @@
      * @param exdays
      */
     function setCookie(cname, cvalue, exdays) {
-        var d = new Date();
-        d.setTime(d.getTime() + (exdays*24*60*60*1000));
-        var expires = 'expires='+d.toUTCString();
-        document.cookie = cname + '=' + cvalue + '; ' + expires;
+        if(exdays) {
+            var d = new Date();
+            d.setTime(d.getTime() + (exdays*24*60*60*1000));
+            var expires = 'expires='+d.toUTCString();
+            document.cookie = cname + '=' + cvalue + '; ' + expires;
+        } else {
+            document.cookie = cname + '=' + cvalue + '; ';
+        }
+    }
+
+    /**
+     * A function to delete a cookie from the browser
+     */
+    function deleteCookie( name ) {
+        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     }
 
     /**
@@ -280,15 +298,15 @@
             script.parentNode.removeChild(script);
             window[callbackId] = undefined;
             methods.then.call(methods, res);
-            methods.finally.call(methods, res);
+            methods['finally'].call(methods, res);
         };
 
         //Error callback
         script.onerror = function(e) {
             script.parentNode.removeChild(script);
             window[callbackId] = undefined;
-            methods.catch.call(methods, e);
-            methods.finally.call(methods, e);
+            methods['catch'].call(methods, e);
+            methods['finally'].call(methods, e);
         };
 
         //Find JSON_CALLBACK in url & replace w/ callbackId function
@@ -487,6 +505,7 @@
     //Export get/setCookie because they are helper functions used by uhttp and could be useful for a user
     exports.getCookie = getCookie;
     exports.setCookie = setCookie;
+    exports.deleteCookie = deleteCookie;
 
     //Export actual ajax request methods
     exports.get = function(src, options) {
@@ -526,8 +545,8 @@
     };
 
     //Jsonp method is unique from the rest (doesn't use xhr, creates a script element)
-    exports.jsonp = function(src, options) {
-        return jsonp(src, options);
+    exports.jsonp = function(src) {
+        return jsonp(src);
     };
 
     return exports;
