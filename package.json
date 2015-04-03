@@ -10,7 +10,6 @@
     "nodejs",
     "client"
   ],
-  "private": true,
   "scripts": {
     "test": "NODE_ENV=test node node_modules/.bin/mocha \"test/**/*.js\"",
     "test-coverage": "NODE_ENV=test node node_modules/.bin/mocha -r blanket -R html-cov > coverage/coverage.html"

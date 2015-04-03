@@ -21,6 +21,11 @@ Alternatively, you can install from bower as well:
 bower install uhttp --save
 ```
 
+To install with nodejs, run the following:
+```
+npm install uhttp --save
+```
+
 #### uhttp.get(url, [,options])
 Use uhttp.get() to make a GET request. You can use either "then... catch" callbacks to obtain the response.
 
