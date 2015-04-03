@@ -22,7 +22,7 @@
       <h1>
 <a id="uhttp" class="anchor" href="#uhttp" aria-hidden="true"><span class="octicon octicon-link"></span></a>uhttp</h1>
 
-<p>A micro client-side ajax library modeled after angularjs's $http module that doesn't require any dependencies (jquery or otherwise).</p>
+<p>A micro ajax library modeled after angularjs's $http module that doesn't require any dependencies (jquery or otherwise). As of version 1.1.0, uhttp runs in browsers as well as in nodejs.</p>
 
 <p>uhttp is about 6kb minified and about 2.3kb minified and compressed.</p>
 
@@ -33,7 +33,7 @@
 <h4>
 <a id="downloading--setting-up" class="anchor" href="#downloading--setting-up" aria-hidden="true"><span class="octicon octicon-link"></span></a>Downloading &amp; Setting up</h4>
 
-<p>Download the minified build <a href="">here</a>, put into your public scripts directory, and add to your webpage by adding the following tag:</p>
+<p>Download the minified build <a href="https://raw.githubusercontent.com/Flux159/uhttp/master/dist/uhttp.min.js">here</a>, put into your public scripts directory, and add to your webpage by adding the following tag:</p>
 
 <pre><code>&lt;script type="application/javascript" src="/scripts/uhttp.min.js"&gt;&lt;/script&gt;
 </code></pre>
@@ -42,6 +42,15 @@
 
 <pre><code>bower install uhttp --save
 </code></pre>
+
+<p>To install with nodejs, run the following:</p>
+
+<pre><code>npm install uhttp --save
+</code></pre>
+
+<p>Use server side by requiring in your files:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> uhttp <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>uhttp<span class="pl-pds">'</span></span>);</pre></div>
 
 <h4>
 <a id="uhttpgeturl-options" class="anchor" href="#uhttpgeturl-options" aria-hidden="true"><span class="octicon octicon-link"></span></a>uhttp.get(url, [,options])</h4>
