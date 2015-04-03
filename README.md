@@ -26,6 +26,11 @@ To install with nodejs, run the following:
 npm install uhttp --save
 ```
 
+Use server side by requiring in your files:
+```javascript
+var uhttp = require('uhttp');
+```
+
 #### uhttp.get(url, [,options])
 Use uhttp.get() to make a GET request. You can use either "then... catch" callbacks to obtain the response.
 
