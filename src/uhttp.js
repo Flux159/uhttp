@@ -299,16 +299,20 @@
         thisWindow[callbackId] = function(res) {
             script.parentNode.removeChild(script);
             thisWindow[callbackId] = undefined;
+            script = null; callbackId = null;
             methods.then.call(methods, res);
             methods['finally'].call(methods, res);
+            methods = null;
         };
 
         //Error callback
         script.onerror = function(e) {
             script.parentNode.removeChild(script);
             thisWindow[callbackId] = undefined;
+            script = null; callbackId = null;
             methods['catch'].call(methods, e);
             methods['finally'].call(methods, e);
+            methods = null;
         };
 
         //Find JSON_CALLBACK in url & replace w/ callbackId function
@@ -474,6 +478,7 @@
                     methods['catch'].call(methods, parsedResponse, request.status, request);
                 }
                 methods['finally'].call(methods, parsedResponse, request.status, request);
+                config = null; methods = null; request = null; parsedResponse = null;
             }
         };
 
