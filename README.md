@@ -173,12 +173,12 @@ uhttp.head('/api/endpoint/head').then(function(res, status, xhr) {
 
 #### uhttp.jsonp()
 
-Use uhttp.jsonp() to send a JSONP request. Note that you should define the callback as 'JSON_CALLBACK'. uhttp will generate a global function attached to the window object for the duration of the request and pass its data to the then/catch functions.
+Use uhttp.jsonp() to send a JSONP request. Note that you should define the callback as 'JSON_CALLBACK'. uhttp will generate a global function attached to the window object for the duration of the request and pass its data to the then/catch functions. Note that since [jsonp](http://en.wikipedia.org/wiki/JSONP) requests use a script element and not xhr, there is no status or xhr returned in the callback.
 
 ```javascript
-uhttp.jsonp('/api/endpoint/jsonp?callback=JSON_CALLBACK').then(function(res, status, xhr) {
+uhttp.jsonp('/api/endpoint/jsonp?callback=JSON_CALLBACK').then(function(res) {
     //Success
-}).catch(function(res, status, xhr) {
+}).catch(function(err) {
     //Error
 });
 ```
