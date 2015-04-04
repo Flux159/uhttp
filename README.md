@@ -12,17 +12,17 @@ Note that uhttp does not use true [promises](https://github.com/jakearchibald/es
 
 Download the minified build [here](https://raw.githubusercontent.com/Flux159/uhttp/master/dist/uhttp.min.js), put into your public scripts directory, and add to your webpage by adding the following tag:
 
-```
+```html
 <script type="application/javascript" src="/scripts/uhttp.min.js"></script>
 ```
 
 Alternatively, you can install from bower as well:
-```
+```shell
 bower install uhttp --save
 ```
 
 To install with nodejs, run the following:
-```
+```shell
 npm install uhttp --save
 ```
 
