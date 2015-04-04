@@ -32,7 +32,7 @@ var uhttp = require('uhttp');
 ```
 
 #### uhttp.get(url, [,options])
-Use uhttp.get() to make a GET request. You can use either "then... catch" callbacks to obtain the response.
+Use uhttp.get() to make a GET request. You can use "then... catch" callbacks to obtain the response.
 
 ```javascript
 uhttp.get('/api/endpoint').then(function(res, status, xhr) {
@@ -203,7 +203,7 @@ uhttp.get('/xsrf/endpoint').then(function(res) {
 ```
 
 #### Example: Sending a file
-A common use case for POSTing data is to send a file to your server (like an image or video file). uhttp makes that easy by allowing you to specify a progress callback with your POST request. Note that this example uses Xhr2, which is not supported by IE8. Check [caniuse](http://caniuse.com/#feat=xhr2) for more information on browser compatibility. For a full example, see the example in /test/testupload.html
+A common use case for POSTing data is to send a file to your server (like an image or video file). uhttp makes that easy by allowing you to specify a progress callback with your POST request. Note that this example uses Xhr2, which is not supported by IE8. Check [caniuse](http://caniuse.com/#feat=xhr2) for more information on browser compatibility. For a full example, see the example in /test/testupload.html. Note that this example will only work in browsers (nodejs does not support FormData objects, however, it may be possible to use [this](https://github.com/felixge/node-form-data) library - this has not been tested w/ uhttp however).
 
 ```javascript
 
