@@ -1,15 +1,15 @@
 /**
  * Client side uhttp
  */
-(function(root,factory) {
-    if(typeof define === 'function' && define.amd) {
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
         define(factory);
-    } else if(typeof 'exports' === 'object') {
+    } else if (typeof 'exports' === 'object') {
         module.exports = factory;
     } else {
         root.uhttp = factory(root);
     }
-})(this, function() {
+})(this, function () {
 
     'use strict';
 
@@ -21,39 +21,45 @@
     function Cache(name, options) {
         this.name = name;
         this.data = {};
-        if(!options) {options = {};}
+        if (!options) {
+            options = {};
+        }
         this.timeout = options.timeout || 0;
     }
-    Cache.prototype.remove = function(key) {
+
+    Cache.prototype.remove = function (key) {
         delete this.data[key];
     };
-    Cache.prototype.clear = function() {
+    Cache.prototype.clear = function () {
         this.data = {};
     };
-    Cache.prototype.set = function(key, value, options) {
+    Cache.prototype.set = function (key, value, options) {
         this.data[key] = value;
-        if(!options) {options = {};}
-        if((options.timeout || this.timeout) > 0) {
+        if (!options) {
+            options = {};
+        }
+        if ((options.timeout || this.timeout) > 0) {
             var cache = this;
-            setTimeout(function() {
+            setTimeout(function () {
                 cache.remove(key);
             }, (options.timeout || this.timeout));
         }
     };
-    Cache.prototype.get = function(key) {
+    Cache.prototype.get = function (key) {
         return this.data[key];
     };
 
     /**
      * The public factory that allows users to create their own caches (useful for manually manipulating cached data)
      */
-    var CacheFactory = (function() {
+    var CacheFactory = (function () {
         var instance = null;
+
         function init() {
             var caches = {__default: new Cache('__default')};
             return {
-                get: function(key, options) {
-                    if(caches[key]) {
+                get: function (key, options) {
+                    if (caches[key]) {
                         return caches[key];
                     } else {
                         var newCache = new Cache(key, options);
@@ -63,9 +69,10 @@
                 }
             };
         }
+
         return {
-            getFactory: function() {
-                if(!instance) {
+            getFactory: function () {
+                if (!instance) {
                     instance = init();
                 }
                 return instance;
@@ -78,13 +85,27 @@
      * Helper functions to determine request/response type
      */
     //Parse json responses
-    function isObject(value) {return value !== null && typeof value === 'object';}
-    function isString(value) {return value !== null && typeof value === 'string';}
+    function isObject(value) {
+        return value !== null && typeof value === 'object';
+    }
+
+    function isString(value) {
+        return value !== null && typeof value === 'string';
+    }
 
     var toString = Object.prototype.toString;
-    function isFile(obj) {return toString.call(obj) === '[object File]';}
-    function isBlob(obj) {return toString.call(obj) === '[object Blob]';}
-    function isFormData(obj) {return toString.call(obj) === '[object FormData]';}
+
+    function isFile(obj) {
+        return toString.call(obj) === '[object File]';
+    }
+
+    function isBlob(obj) {
+        return toString.call(obj) === '[object Blob]';
+    }
+
+    function isFormData(obj) {
+        return toString.call(obj) === '[object FormData]';
+    }
 
     /**
      * Default transforming of requests and responses (can be overrided by setting individual request options or uhttp globalOptions)
@@ -98,7 +119,7 @@
     }
 
     function transformRequestData(d) {
-        if(isObject(d) && !isFile(d) && !isBlob(d) && !isFormData(d)) {
+        if (isObject(d) && !isFile(d) && !isBlob(d) && !isFormData(d)) {
             return JSON.stringify(d);
         } else {
             return d;
@@ -110,7 +131,7 @@
         var d = req.responseText;
         try {
             result = JSON.parse(d);
-        } catch(e) {
+        } catch (e) {
             result = d;
         }
         return result;
@@ -164,15 +185,17 @@
      * @returns {string}
      */
     function getCookie(cname) {
-        if(cname) {
+        if (cname) {
             var name = cname + '=';
             var ca = document.cookie.split(';');
-            for(var i=0; i<ca.length; i++) {
+            for (var i = 0; i < ca.length; i++) {
                 var c = ca[i];
-                while (c.charAt(0) ===' ') {
+                while (c.charAt(0) === ' ') {
                     c = c.substring(1);
                 }
-                if (c.indexOf(name) === 0) {return c.substring(name.length,c.length);}
+                if (c.indexOf(name) === 0) {
+                    return c.substring(name.length, c.length);
+                }
             }
             return '';
         } else {
@@ -188,10 +211,10 @@
      * @param exdays
      */
     function setCookie(cname, cvalue, exdays) {
-        if(exdays) {
+        if (exdays) {
             var d = new Date();
-            d.setTime(d.getTime() + (exdays*24*60*60*1000));
-            var expires = 'expires='+d.toUTCString();
+            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+            var expires = 'expires=' + d.toUTCString();
             document.cookie = cname + '=' + cvalue + '; ' + expires;
         } else {
             document.cookie = cname + '=' + cvalue + '; ';
@@ -201,7 +224,7 @@
     /**
      * A function to delete a cookie from the browser
      */
-    function deleteCookie( name ) {
+    function deleteCookie(name) {
         document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     }
 
@@ -228,7 +251,7 @@
 
     function setGlobalOptions(optionsObject) {
         globalOptions = optionsObject;
-        if(!globalOptions.headers || !isObject(globalOptions.headers)) {
+        if (!globalOptions.headers || !isObject(globalOptions.headers)) {
             globalOptions.headers = {};
         }
     }
@@ -241,8 +264,8 @@
      * A function to merge header objects together (into a single dictionary that will be passed to setXHRHeaders)
      */
     function mergeHeaders(mergedHeaders, addHeaders) {
-        for(var h in addHeaders) {
-            if(addHeaders.hasOwnProperty(h)) {
+        for (var h in addHeaders) {
+            if (addHeaders.hasOwnProperty(h)) {
                 mergedHeaders[h] = addHeaders[h];
             }
         }
@@ -254,8 +277,8 @@
      * @param headerObject
      */
     function setXHRHeaders(request, headerObject) {
-        for(var h in headerObject) {
-            if(headerObject.hasOwnProperty(h)) {
+        for (var h in headerObject) {
+            if (headerObject.hasOwnProperty(h)) {
                 request.setRequestHeader(h, headerObject[h]);
             }
         }
@@ -271,21 +294,24 @@
     function jsonp(url) {
 
         var methods = {
-            then: function() {},
-            'catch': function() {},
-            'finally': function() {}
+            then: function () {
+            },
+            'catch': function () {
+            },
+            'finally': function () {
+            }
         };
 
         var callbacks = {
-            then: function(callback) {
+            then: function (callback) {
                 methods.then = callback;
                 return callbacks;
             },
-            'catch': function(callback) {
+            'catch': function (callback) {
                 methods['catch'] = callback;
                 return callbacks;
             },
-            'finally': function(callback) {
+            'finally': function (callback) {
                 methods['finally'] = callback;
                 return callback;
             }
@@ -296,20 +322,22 @@
         var script = document.createElement('script');
 
         //Success callback
-        thisWindow[callbackId] = function(res) {
+        thisWindow[callbackId] = function (res) {
             script.parentNode.removeChild(script);
             thisWindow[callbackId] = undefined;
-            script = null; callbackId = null;
+            script = null;
+            callbackId = null;
             methods.then.call(methods, res);
             methods['finally'].call(methods, res);
             methods = null;
         };
 
         //Error callback
-        script.onerror = function(e) {
+        script.onerror = function (e) {
             script.parentNode.removeChild(script);
             thisWindow[callbackId] = undefined;
-            script = null; callbackId = null;
+            script = null;
+            callbackId = null;
             methods['catch'].call(methods, e);
             methods['finally'].call(methods, e);
             methods = null;
@@ -338,26 +366,29 @@
      * @param data
      */
     function xhr(type, url, options, data) {
-        if(!options) {
+        if (!options) {
             options = {};
         }
 
         var methods = {
-            then: function() {},
-            'catch': function() {},
-            'finally': function() {}
+            then: function () {
+            },
+            'catch': function () {
+            },
+            'finally': function () {
+            }
         };
 
         var callbacks = {
-            then: function(callback) {
+            then: function (callback) {
                 methods.then = callback;
                 return callbacks;
             },
-            'catch': function(callback) {
+            'catch': function (callback) {
                 methods['catch'] = callback;
                 return callbacks;
             },
-            'finally': function(callback) {
+            'finally': function (callback) {
                 methods['finally'] = callback;
                 return callback;
             }
@@ -369,24 +400,24 @@
 
         //Default headers set to reasonable defaults (cannot be modified by user - see globalOptions & options for mutable options)
         mergeHeaders(mergedHeaders, {'Accept': 'application/json, text/plain, */*'});
-        if(type === 'POST' || type === 'PUT' || type === 'PATCH') {
-            if(isObject(data) && !isFile(data) && !isBlob(data)) {
-                if(!isFormData(data)) {
+        if (type === 'POST' || type === 'PUT' || type === 'PATCH') {
+            if (isObject(data) && !isFile(data) && !isBlob(data)) {
+                if (!isFormData(data)) {
                     mergeHeaders(mergedHeaders, {'Content-Type': JSON_CONTENT_TYPE_HEADER});
                 }
             }
         }
 
         mergeHeaders(mergedHeaders, globalOptions.headers);
-        if(isObject(options.headers)) {
+        if (isObject(options.headers)) {
             mergeHeaders(mergedHeaders, options.headers);
         }
 
         //If same domain, set XSRF-Header to XSRF-Cookie
-        if(urlIsSameOrigin(url)) {
+        if (urlIsSameOrigin(url)) {
             var xsrfHeader = {};
             var xsrfValue = getCookie((options.xsrfCookieName || globalOptions.xsrfCookieName || defaultOptions.xsrfCookieName));
-            if(xsrfValue) {
+            if (xsrfValue) {
                 xsrfHeader[(options.xsrfHeaderName || globalOptions.xsrfHeaderName || defaultOptions.xsrfHeaderName)] = xsrfValue;
                 mergeHeaders(mergedHeaders, xsrfHeader);
             }
@@ -416,21 +447,21 @@
         mergedOptions.transformRequest(config);
 
         var cache = config.options.cache;
-        if(config.type === 'GET' && cache) {
+        if (config.type === 'GET' && cache) {
             var parsedResponse;
-            if(typeof cache === 'boolean') {
+            if (typeof cache === 'boolean') {
                 parsedResponse = thisCacheFactory.get('__default').get(url);
             } else {
-                if(cache.constructor.name === 'Cache') {
+                if (cache.constructor.name === 'Cache') {
                     parsedResponse = cache.get(url);
                 } else {
                     parsedResponse = cache.cache.get(url);
                 }
             }
-            if(parsedResponse) {
+            if (parsedResponse) {
                 //Need to have a timeout in order to return then go to callback. I think that setIntermediate is supposed to solve this problem
                 //Note that apparently real promises have a similar issue
-                setTimeout(function() {
+                setTimeout(function () {
                     methods.then.call(methods, parsedResponse);
                 }, 1);
                 return callbacks;
@@ -442,7 +473,7 @@
         var request = new XHR('MSXML2.XMLHTTP.3.0');
 
         //Set progress handler (must be done before calling request.open)
-        if(config.options.progressHandler && request.upload) {
+        if (config.options.progressHandler && request.upload) {
             request.upload.onprogress = config.options.progressHandler;
         }
 
@@ -452,7 +483,7 @@
         setXHRHeaders(request, config.headers);
 
         //Set withCredentials option
-        if(config.options.withCredentials) {
+        if (config.options.withCredentials) {
             request.withCredentials = true;
         }
 
@@ -462,11 +493,11 @@
                 config.options.transformResponse(request);
                 var parsedResponse = config.options.transformResponseData(request);
                 if ((request.status >= 200 && request.status < 300) || request.status === 304) {
-                    if(type === 'GET' && cache) {
-                        if(typeof cache === 'boolean') {
+                    if (type === 'GET' && cache) {
+                        if (typeof cache === 'boolean') {
                             thisCacheFactory.get('__default').set(url, parsedResponse);
                         } else {
-                            if(cache.constructor.name === 'Cache') {
+                            if (cache.constructor.name === 'Cache') {
                                 cache.set(url, parsedResponse);
                             } else {
                                 cache.cache.set(url, parsedResponse, cache.options);
@@ -478,7 +509,10 @@
                     methods['catch'].call(methods, parsedResponse, request.status, request);
                 }
                 methods['finally'].call(methods, parsedResponse, request.status, request);
-                config = null; methods = null; request = null; parsedResponse = null;
+                config = null;
+                methods = null;
+                request = null;
+                parsedResponse = null;
             }
         };
 
@@ -486,9 +520,9 @@
         request.send(config.options.transformRequestData(data));
 
         //Timeout handling (abort request after timeout time in milliseconds)
-        if(config.options.timeout > 0) {
-            setTimeout(function() {
-                if(request) {
+        if (config.options.timeout > 0) {
+            setTimeout(function () {
+                if (request) {
                     request.abort();
                 }
             }, config.options.timeout);
@@ -515,44 +549,44 @@
     exports.deleteCookie = deleteCookie;
 
     //Export actual ajax request methods
-    exports.get = function(src, options) {
+    exports.get = function (src, options) {
         return xhr('GET', src, options);
     };
 
-    exports.head = function(src, options) {
+    exports.head = function (src, options) {
         return xhr('HEAD', src, options);
     };
 
-    exports.put = function(src, options, data) {
-        if(!data) {
+    exports.put = function (src, options, data) {
+        if (!data) {
             data = options;
             options = null;
         }
         return xhr('PUT', src, options, data);
     };
 
-    exports.patch = function(src, options, data) {
-        if(!data) {
+    exports.patch = function (src, options, data) {
+        if (!data) {
             data = options;
             options = null;
         }
         return xhr('PATCH', src, options, data);
     };
 
-    exports.post = function(src, options, data) {
-        if(!data) {
+    exports.post = function (src, options, data) {
+        if (!data) {
             data = options;
             options = null;
         }
         return xhr('POST', src, options, data);
     };
 
-    exports['delete'] = function(src, options) {
+    exports['delete'] = function (src, options) {
         return xhr('DELETE', src, options);
     };
 
     //Jsonp method is unique from the rest (doesn't use xhr, creates a script element)
-    exports.jsonp = function(src) {
+    exports.jsonp = function (src) {
         return jsonp(src);
     };
 
