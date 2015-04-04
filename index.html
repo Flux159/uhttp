@@ -35,18 +35,15 @@
 
 <p>Download the minified build <a href="https://raw.githubusercontent.com/Flux159/uhttp/master/dist/uhttp.min.js">here</a>, put into your public scripts directory, and add to your webpage by adding the following tag:</p>
 
-<pre><code>&lt;script type="application/javascript" src="/scripts/uhttp.min.js"&gt;&lt;/script&gt;
-</code></pre>
+<div class="highlight highlight-html"><pre>&lt;<span class="pl-ent">script</span> <span class="pl-e">type</span>=<span class="pl-s"><span class="pl-pds">"</span>application/javascript<span class="pl-pds">"</span></span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>/scripts/uhttp.min.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;</pre></div>
 
 <p>Alternatively, you can install from bower as well:</p>
 
-<pre><code>bower install uhttp --save
-</code></pre>
+<div class="highlight highlight-shell"><pre>bower install uhttp --save</pre></div>
 
 <p>To install with nodejs, run the following:</p>
 
-<pre><code>npm install uhttp --save
-</code></pre>
+<div class="highlight highlight-shell"><pre>npm install uhttp --save</pre></div>
 
 <p>Use server side by requiring in your files:</p>
 
@@ -55,7 +52,7 @@
 <h4>
 <a id="uhttpgeturl-options" class="anchor" href="#uhttpgeturl-options" aria-hidden="true"><span class="octicon octicon-link"></span></a>uhttp.get(url, [,options])</h4>
 
-<p>Use uhttp.get() to make a GET request. You can use either "then... catch" callbacks to obtain the response.</p>
+<p>Use uhttp.get() to make a GET request. You can use "then... catch" callbacks to obtain the response.</p>
 
 <div class="highlight highlight-javascript"><pre>uhttp.get(<span class="pl-s"><span class="pl-pds">'</span>/api/endpoint<span class="pl-pds">'</span></span>).then(<span class="pl-k">function</span>(<span class="pl-smi">res</span>, <span class="pl-smi">status</span>, <span class="pl-smi">xhr</span>) {
     <span class="pl-c">//Successful response</span>
@@ -185,11 +182,11 @@ uhttp.post(<span class="pl-s"><span class="pl-pds">'</span>/api/endpoint/post<sp
 <h4>
 <a id="uhttpjsonp" class="anchor" href="#uhttpjsonp" aria-hidden="true"><span class="octicon octicon-link"></span></a>uhttp.jsonp()</h4>
 
-<p>Use uhttp.jsonp() to send a JSONP request. Note that you should define the callback as 'JSON_CALLBACK'. uhttp will generate a global function attached to the window object for the duration of the request and pass its data to the then/catch functions.</p>
+<p>Use uhttp.jsonp() to send a JSONP request. Note that you should define the callback as 'JSON_CALLBACK'. uhttp will generate a global function attached to the window object for the duration of the request and pass its data to the then/catch functions. Note that since <a href="http://en.wikipedia.org/wiki/JSONP">jsonp</a> requests use a script element and not xhr, there is no status or xhr returned in the callback.</p>
 
-<div class="highlight highlight-javascript"><pre>uhttp.jsonp(<span class="pl-s"><span class="pl-pds">'</span>/api/endpoint/jsonp?callback=JSON_CALLBACK<span class="pl-pds">'</span></span>).then(<span class="pl-k">function</span>(<span class="pl-smi">res</span>, <span class="pl-smi">status</span>, <span class="pl-smi">xhr</span>) {
+<div class="highlight highlight-javascript"><pre>uhttp.jsonp(<span class="pl-s"><span class="pl-pds">'</span>/api/endpoint/jsonp?callback=JSON_CALLBACK<span class="pl-pds">'</span></span>).then(<span class="pl-k">function</span>(<span class="pl-smi">res</span>) {
     <span class="pl-c">//Success</span>
-}).catch(<span class="pl-k">function</span>(<span class="pl-smi">res</span>, <span class="pl-smi">status</span>, <span class="pl-smi">xhr</span>) {
+}).catch(<span class="pl-k">function</span>(<span class="pl-smi">err</span>) {
     <span class="pl-c">//Error</span>
 });</pre></div>
 
@@ -215,7 +212,7 @@ uhttp.get(<span class="pl-s"><span class="pl-pds">'</span>/xsrf/endpoint<span cl
 <h4>
 <a id="example-sending-a-file" class="anchor" href="#example-sending-a-file" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example: Sending a file</h4>
 
-<p>A common use case for POSTing data is to send a file to your server (like an image or video file). uhttp makes that easy by allowing you to specify a progress callback with your POST request. Note that this example uses Xhr2, which is not supported by IE8. Check <a href="http://caniuse.com/#feat=xhr2">caniuse</a> for more information on browser compatibility. For a full example, see the example in /test/testupload.html</p>
+<p>A common use case for POSTing data is to send a file to your server (like an image or video file). uhttp makes that easy by allowing you to specify a progress callback with your POST request. Note that this example uses Xhr2, which is not supported by IE8. Check <a href="http://caniuse.com/#feat=xhr2">caniuse</a> for more information on browser compatibility. For a full example, see the example in /test/testupload.html. Note that this example will only work in browsers (nodejs does not support FormData objects, however, it may be possible to use <a href="https://github.com/felixge/node-form-data">this</a> library - this has not been tested w/ uhttp however).</p>
 
 <div class="highlight highlight-javascript"><pre>
 <span class="pl-k">var</span> files <span class="pl-k">=</span> <span class="pl-c1">document</span>.<span class="pl-c1">getElementById</span>(<span class="pl-s"><span class="pl-pds">'</span>upload-input-element<span class="pl-pds">'</span></span>).files;
