@@ -10,6 +10,8 @@ Note that uhttp does not use true [promises](https://github.com/jakearchibald/es
 
 #### Downloading & Setting up
 
+###### Browser
+
 Download the minified build [here](https://raw.githubusercontent.com/Flux159/uhttp/master/dist/uhttp.min.js), put into your public scripts directory, and add to your webpage by adding the following tag:
 
 ```html
@@ -21,6 +23,8 @@ Alternatively, you can install from bower as well:
 bower install uhttp --save
 ```
 
+###### Nodejs
+
 To install with nodejs, run the following:
 ```shell
 npm install uhttp --save
@@ -30,6 +34,8 @@ Use server side by requiring in your files:
 ```javascript
 var uhttp = require('uhttp');
 ```
+
+Note: You should not use the minified browser version of uhttp in nodejs (or vice versa). This is because while uhttp provides a common api for ajax/http requests, the implementations are different for nodejs and the browser (nodejs uses http.request while browsers use XMLHttpRequest - among other differences).
 
 #### uhttp.get(url, [,options])
 Use uhttp.get() to make a GET request. You can use "then... catch" callbacks to obtain the response.
@@ -192,7 +198,7 @@ var globalOptions = {
     xsrfHeaderName: 'CUSTOM-HEADER-NAME'
 };
 
-uhttp.setGlobalOptions = globalOptions;
+uhttp.setGlobalOptions(globalOptions);
 
 uhttp.get('/xsrf/endpoint').then(function(res) {
     //Success
@@ -477,7 +483,7 @@ console.log(uhttp.getCookie('othercookie')); //'yay!'
 
 #### Development, Testing, & Building
 
-uhttp is developed using a nodejs environment. Make sure that you have nodejs and npm installed, clone this source repository and run the following in the uhttp directory:
+uhttp is developed using a nodejs environment and uses [grunt](http://gruntjs.com/getting-started) for running tests and building. Make sure that you have nodejs and npm installed, clone this source repository and run the following in the uhttp directory:
 
 ```
 npm install && grunt build
