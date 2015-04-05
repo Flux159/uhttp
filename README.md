@@ -297,7 +297,7 @@ uhttp.setGlobalOptions({
     },
     timeout: 2000, //Set timeout to 2 seconds
     withCredentials: true, //Set withCredentials on xhr requests,
-    transformRequest: function(xhr) {}, //Transform xhr before sending (also before transformRequestData)
+    transformRequest: function(config) {}, //Transform xhr config before sending (also before transformRequestData)
     transformResponse: function(xhr) {}, //Transform xhr after response (but before transformResponseData)
     transformRequestData: function(data) {return data;}, //Transform requests before sending
     transformResponseData: function(data) {return data;}, //Transform returned responses
@@ -469,6 +469,8 @@ uhttp.get('http://localhost:43760/api/get', {cache: blogCache}).then(function(re
 });
 
 ```
+
+Note that passing uhttp a cache object will only cache get requests. This is because it isn't meaningful to cache POST, PUT, DELETE requests (read [this](http://stackoverflow.com/questions/626057/is-it-possible-to-cache-post-methods-in-http) for more information).
 
 ###### Cookies Helpers
 
