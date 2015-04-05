@@ -33,6 +33,9 @@
 <h4>
 <a id="downloading--setting-up" class="anchor" href="#downloading--setting-up" aria-hidden="true"><span class="octicon octicon-link"></span></a>Downloading &amp; Setting up</h4>
 
+<h6>
+<a id="browser" class="anchor" href="#browser" aria-hidden="true"><span class="octicon octicon-link"></span></a>Browser</h6>
+
 <p>Download the minified build <a href="https://raw.githubusercontent.com/Flux159/uhttp/master/dist/uhttp.min.js">here</a>, put into your public scripts directory, and add to your webpage by adding the following tag:</p>
 
 <div class="highlight highlight-html"><pre>&lt;<span class="pl-ent">script</span> <span class="pl-e">type</span>=<span class="pl-s"><span class="pl-pds">"</span>application/javascript<span class="pl-pds">"</span></span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>/scripts/uhttp.min.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;</pre></div>
@@ -41,6 +44,9 @@
 
 <div class="highlight highlight-shell"><pre>bower install uhttp --save</pre></div>
 
+<h6>
+<a id="nodejs" class="anchor" href="#nodejs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Nodejs</h6>
+
 <p>To install with nodejs, run the following:</p>
 
 <div class="highlight highlight-shell"><pre>npm install uhttp --save</pre></div>
@@ -48,6 +54,8 @@
 <p>Use server side by requiring in your files:</p>
 
 <div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> uhttp <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>uhttp<span class="pl-pds">'</span></span>);</pre></div>
+
+<p>Note: You should not use the minified browser version of uhttp in nodejs (or vice versa). This is because while uhttp provides a common api for ajax/http requests, the implementations are different for nodejs and the browser (nodejs uses http.request while browsers use XMLHttpRequest - among other differences).</p>
 
 <h4>
 <a id="uhttpgeturl-options" class="anchor" href="#uhttpgeturl-options" aria-hidden="true"><span class="octicon octicon-link"></span></a>uhttp.get(url, [,options])</h4>
@@ -200,7 +208,7 @@ uhttp.post(<span class="pl-s"><span class="pl-pds">'</span>/api/endpoint/post<sp
     xsrfHeaderName<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>CUSTOM-HEADER-NAME<span class="pl-pds">'</span></span>
 };
 
-uhttp.setGlobalOptions <span class="pl-k">=</span> globalOptions;
+uhttp.setGlobalOptions(globalOptions);
 
 uhttp.get(<span class="pl-s"><span class="pl-pds">'</span>/xsrf/endpoint<span class="pl-pds">'</span></span>).then(<span class="pl-k">function</span>(<span class="pl-smi">res</span>) {
     <span class="pl-c">//Success</span>
@@ -473,7 +481,7 @@ uhttp.setCookie(<span class="pl-s"><span class="pl-pds">'</span>othercookie<span
 <h4>
 <a id="development-testing--building" class="anchor" href="#development-testing--building" aria-hidden="true"><span class="octicon octicon-link"></span></a>Development, Testing, &amp; Building</h4>
 
-<p>uhttp is developed using a nodejs environment. Make sure that you have nodejs and npm installed, clone this source repository and run the following in the uhttp directory:</p>
+<p>uhttp is developed using a nodejs environment and uses <a href="http://gruntjs.com/getting-started">grunt</a> for running tests and building. Make sure that you have nodejs and npm installed, clone this source repository and run the following in the uhttp directory:</p>
 
 <pre><code>npm install &amp;&amp; grunt build
 </code></pre>
