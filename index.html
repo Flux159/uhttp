@@ -136,7 +136,7 @@ uhttp.post(<span class="pl-s"><span class="pl-pds">'</span>/api/endpoint/post/fo
 <p>Example setting a custom content type:</p>
 
 <div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> myCustomData <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>&lt;custom&gt;xml&lt;/custom&gt;<span class="pl-pds">'</span></span>;
-uhttp.post(<span class="pl-s"><span class="pl-pds">'</span>/api/endpoint/post<span class="pl-pds">'</span></span>, {<span class="pl-s"><span class="pl-pds">'</span>Content-Type<span class="pl-pds">'</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>application/xml<span class="pl-pds">'</span></span>}, myCustomData).then(<span class="pl-k">function</span>(<span class="pl-smi">res</span>, <span class="pl-smi">status</span>, <span class="pl-smi">xhr</span>) {
+uhttp.post(<span class="pl-s"><span class="pl-pds">'</span>/api/endpoint/post<span class="pl-pds">'</span></span>, {headers<span class="pl-k">:</span> {<span class="pl-s"><span class="pl-pds">'</span>Content-Type<span class="pl-pds">'</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>application/xml<span class="pl-pds">'</span></span>}}, myCustomData).then(<span class="pl-k">function</span>(<span class="pl-smi">res</span>, <span class="pl-smi">status</span>, <span class="pl-smi">xhr</span>) {
     <span class="pl-c">//Success</span>
 }).catch(<span class="pl-k">function</span>(<span class="pl-smi">err</span>, <span class="pl-smi">status</span>, <span class="pl-smi">xhr</span>) {
     <span class="pl-c">//Error</span>
@@ -304,7 +304,7 @@ uhttp.get(<span class="pl-s"><span class="pl-pds">'</span>http://subdomain.examp
     },
     timeout<span class="pl-k">:</span> <span class="pl-c1">2000</span>, <span class="pl-c">//Set timeout to 2 seconds</span>
     withCredentials<span class="pl-k">:</span> <span class="pl-c1">true</span>, <span class="pl-c">//Set withCredentials on xhr requests,</span>
-    <span class="pl-en">transformRequest</span>: <span class="pl-k">function</span>(<span class="pl-smi">xhr</span>) {}, <span class="pl-c">//Transform xhr before sending (also before transformRequestData)</span>
+    <span class="pl-en">transformRequest</span>: <span class="pl-k">function</span>(<span class="pl-smi">config</span>) {}, <span class="pl-c">//Transform xhr config before sending (also before transformRequestData)</span>
     <span class="pl-en">transformResponse</span>: <span class="pl-k">function</span>(<span class="pl-smi">xhr</span>) {}, <span class="pl-c">//Transform xhr after response (but before transformResponseData)</span>
     <span class="pl-en">transformRequestData</span>: <span class="pl-k">function</span>(<span class="pl-smi">data</span>) {<span class="pl-k">return</span> data;}, <span class="pl-c">//Transform requests before sending</span>
     <span class="pl-en">transformResponseData</span>: <span class="pl-k">function</span>(<span class="pl-smi">data</span>) {<span class="pl-k">return</span> data;}, <span class="pl-c">//Transform returned responses</span>
@@ -467,6 +467,8 @@ uhttp.get(<span class="pl-s"><span class="pl-pds">'</span>http://localhost:43760
     <span class="pl-c">//Data is cached in blogCache w/ url as key (you now have control of when to delete from the cache)</span>
 });
 </pre></div>
+
+<p>Note that passing uhttp a cache object will only cache get requests. This is because it isn't meaningful to cache POST, PUT, DELETE requests (read <a href="http://stackoverflow.com/questions/626057/is-it-possible-to-cache-post-methods-in-http">this</a> for more information).</p>
 
 <h6>
 <a id="cookies-helpers" class="anchor" href="#cookies-helpers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cookies Helpers</h6>
