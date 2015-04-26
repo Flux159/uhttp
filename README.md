@@ -121,7 +121,7 @@ uhttp.post('/api/endpoint/post/form/urlencoded', options, data).then(function(re
 Example setting a custom content type:
 ```javascript
 var myCustomData = '<custom>xml</custom>';
-uhttp.post('/api/endpoint/post', {'Content-Type': 'application/xml'}, myCustomData).then(function(res, status, xhr) {
+uhttp.post('/api/endpoint/post', {headers: {'Content-Type': 'application/xml'}}, myCustomData).then(function(res, status, xhr) {
     //Success
 }).catch(function(err, status, xhr) {
     //Error
