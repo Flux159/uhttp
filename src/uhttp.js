@@ -2,9 +2,7 @@
  * Client side uhttp
  */
 (function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        define(factory);
-    } else if (typeof module !== 'undefined') {
+    if (typeof module !== 'undefined') {
         module.exports = factory();
     } else {
         root.uhttp = factory(root);
