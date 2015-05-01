@@ -220,6 +220,14 @@
     }
 
     /**
+     * Function to set cookie from a string (useful on server)
+     * @param cookieString
+     */
+    function setCookieFromString(cookieString) {
+        document.cookie = cookieString;
+    }
+
+    /**
      * A function to delete a cookie from the browser
      */
     function deleteCookie(name) {
@@ -544,6 +552,7 @@
     //Export get/setCookie because they are helper functions used by uhttp and could be useful for a user
     exports.getCookie = getCookie;
     exports.setCookie = setCookie;
+    exports.setCookieFromString = setCookieFromString;
     exports.deleteCookie = deleteCookie;
 
     //Export actual ajax request methods
