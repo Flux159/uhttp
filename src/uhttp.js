@@ -230,8 +230,12 @@
     /**
      * A function to delete a cookie from the browser
      */
-    function deleteCookie(name) {
-        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    function deleteCookie(name, path) {
+        if(path) {
+            document.cookie = name + '=; path=' + path + '; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        } else {
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        }
     }
 
     /**
@@ -538,6 +542,73 @@
     }
 
     /**
+     * Executes requests in parallel and returns responses in a single then.catch clause
+     * @param requestArray
+     * @param callback
+     */
+    function parallel(requestArray, callback) {
+        var doneCounter = 0;
+        var responseArray = [];
+        var err = null;
+        var l = requestArray.length;
+
+        function closure(index, request) {
+            request.then(function(res) {
+                responseArray[index] = res;
+                doneCounter++;
+
+                if(doneCounter === l) {
+                    callback(err, responseArray);
+                }
+            }).catch(function(err) {
+                callback(err, null);
+            });
+        }
+
+        for(var i = 0; i < l; i++) {
+            var req = requestArray[i];
+            responseArray.push(null);
+            closure(i, req);
+        }
+
+    }
+
+    /**
+     * Executes requests in parallel but does not require that all requests complete successfully, returnArray in callback is an object that has a state which tells whether the request was fulfilled or rejected
+     * @param requestArray
+     * @param callback
+     */
+    function settle(requestArray, callback) {
+        var doneCounter = 0;
+        var responseArray = [];
+        var l = requestArray.length;
+
+        function closure(index, request) {
+            request.then(function(res) {
+                responseArray[index] = {state: 'fulfilled', res: res, err: null};
+                doneCounter++;
+
+                if(doneCounter === l) {
+                    callback(responseArray);
+                }
+            }).catch(function(err) {
+                responseArray[index] = {state: 'rejected', res: null, err: err};
+                doneCounter++;
+
+                if(doneCounter === l) {
+                    callback(responseArray);
+                }
+            });
+        }
+
+        for(var i = 0; i < l; i++) {
+            var req = requestArray[i];
+            responseArray.push(null);
+            closure(i, req);
+        }
+    }
+
+    /**
      * Exporting public functions to user
      */
     var exports = {};
@@ -554,6 +625,10 @@
     exports.setCookie = setCookie;
     exports.setCookieFromString = setCookieFromString;
     exports.deleteCookie = deleteCookie;
+
+    //Export parallel and settle helper functions
+    exports.parallel = parallel;
+    exports.settle = settle;
 
     //Export actual ajax request methods
     exports.get = function (src, options) {
