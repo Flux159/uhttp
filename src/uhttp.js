@@ -549,7 +549,7 @@
     function parallel(requestArray, callback) {
         var doneCounter = 0;
         var responseArray = [];
-        var err = null;
+        var errArray = null;
         var l = requestArray.length;
 
         function closure(index, request) {
@@ -558,10 +558,20 @@
                 doneCounter++;
 
                 if(doneCounter === l) {
-                    callback(err, responseArray);
+                    callback(errArray, responseArray);
                 }
             }).catch(function(err) {
-                callback(err, null);
+                responseArray[index] = null;
+                if(!errArray) {
+                    errArray = [err];
+                } else {
+                    errArray.push(err);
+                }
+                doneCounter++;
+
+                if(doneCounter === l) {
+                    callback(errArray, responseArray);
+                }
             });
         }
 
