@@ -213,9 +213,9 @@
             var d = new Date();
             d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
             var expires = 'expires=' + d.toUTCString();
-            document.cookie = cname + '=' + cvalue + '; ' + expires;
+            document.cookie = cname + '=' + cvalue + '; ' + expires + '; path=/';
         } else {
-            document.cookie = cname + '=' + cvalue + '; ';
+            document.cookie = cname + '=' + cvalue + '; path=/';
         }
     }
 
@@ -381,6 +381,7 @@
         }
 
         var methods = {
+            first: function() {},
             then: function () {
             },
             'catch': function () {
@@ -390,6 +391,10 @@
         };
 
         var callbacks = {
+            first: function(callback) {
+                methods.first = callback;
+                return callbacks;
+            },
             then: function (callback) {
                 methods.then = callback;
                 return callbacks;
@@ -472,6 +477,7 @@
                 //Need to have a timeout in order to return then go to callback. I think that setIntermediate is supposed to solve this problem
                 //Note that apparently real promises have a similar issue
                 setTimeout(function () {
+                    methods.first.call(methods, parsedResponse);
                     methods.then.call(methods, parsedResponse);
                 }, 1);
                 return callbacks;
@@ -514,6 +520,7 @@
                             }
                         }
                     }
+                    methods.first.call(methods, parsedResponse, request.status, request);
                     methods.then.call(methods, parsedResponse, request.status, request);
                 } else {
                     methods['catch'].call(methods, parsedResponse, request.status, request);
