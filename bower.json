@@ -1,6 +1,6 @@
 {
   "name": "uhttp",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "main": "src/uhttp.js",
   "ignore": [
     ".jshintrc",
