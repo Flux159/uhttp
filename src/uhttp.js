@@ -303,62 +303,37 @@
      */
     function jsonp(url) {
 
-        var methods = {
-            then: function () {
-            },
-            'catch': function () {
-            },
-            'finally': function () {
-            }
-        };
+        var callbacks = new Promise(function(methodsThen, methodsCatch) {
 
-        var callbacks = {
-            then: function (callback) {
-                methods.then = callback;
-                return callbacks;
-            },
-            'catch': function (callback) {
-                methods['catch'] = callback;
-                return callbacks;
-            },
-            'finally': function (callback) {
-                methods['finally'] = callback;
-                return callback;
-            }
-        };
 
-        //Creating a callback function and a script element
-        var callbackId = 'uhttp_callback_' + new Date().getTime() + '_' + Math.round(Math.random() * 1e16).toString(36);
-        var script = document.createElement('script');
+            //Creating a callback function and a script element
+            var callbackId = 'uhttp_callback_' + new Date().getTime() + '_' + Math.round(Math.random() * 1e16).toString(36);
+            var script = document.createElement('script');
 
-        //Success callback
-        thisWindow[callbackId] = function (res) {
-            script.parentNode.removeChild(script);
-            thisWindow[callbackId] = undefined;
-            script = null;
-            callbackId = null;
-            methods.then.call(methods, res);
-            methods['finally'].call(methods, res);
-            methods = null;
-        };
+            //Success callback
+            thisWindow[callbackId] = function (res) {
+                script.parentNode.removeChild(script);
+                thisWindow[callbackId] = undefined;
+                script = null;
+                callbackId = null;
+                methodsThen(res);
+            };
 
-        //Error callback
-        script.onerror = function (e) {
-            script.parentNode.removeChild(script);
-            thisWindow[callbackId] = undefined;
-            script = null;
-            callbackId = null;
-            methods['catch'].call(methods, e);
-            methods['finally'].call(methods, e);
-            methods = null;
-        };
+            //Error callback
+            script.onerror = function (e) {
+                script.parentNode.removeChild(script);
+                thisWindow[callbackId] = undefined;
+                script = null;
+                callbackId = null;
+                methodsCatch(e);
+            };
 
-        //Find JSON_CALLBACK in url & replace w/ callbackId function
-        script.src = url.replace('JSON_CALLBACK', callbackId);
+            //Find JSON_CALLBACK in url & replace w/ callbackId function
+            script.src = url.replace('JSON_CALLBACK', callbackId);
 
-        //Appending the script element to the document
-        document.body.appendChild(script);
-
+            //Appending the script element to the document
+            document.body.appendChild(script);
+        });
         return callbacks;
     }
 
@@ -380,171 +355,139 @@
             options = {};
         }
 
-        var methods = {
-            first: function() {},
-            then: function () {
-            },
-            'catch': function () {
-            },
-            'finally': function () {
-            }
-        };
+        var callbacks = new Promise(function(methodsThen, methodsCatch) {
 
-        var callbacks = {
-            first: function(callback) {
-                methods.first = callback;
-                return callbacks;
-            },
-            then: function (callback) {
-                methods.then = callback;
-                return callbacks;
-            },
-            'catch': function (callback) {
-                methods['catch'] = callback;
-                return callbacks;
-            },
-            'finally': function (callback) {
-                methods['finally'] = callback;
-                return callback;
-            }
-        };
+            //Iterate headers and add to xhr
+            //Order of precedence: Options, Global, Default
+            var mergedHeaders = {};
 
-        //Iterate headers and add to xhr
-        //Order of precedence: Options, Global, Default
-        var mergedHeaders = {};
-
-        //Default headers set to reasonable defaults (cannot be modified by user - see globalOptions & options for mutable options)
-        mergeHeaders(mergedHeaders, {'Accept': 'application/json, text/plain, */*'});
-        if (type === 'POST' || type === 'PUT' || type === 'PATCH') {
-            if (isObject(data) && !isFile(data) && !isBlob(data)) {
-                if (!isFormData(data)) {
-                    mergeHeaders(mergedHeaders, {'Content-Type': JSON_CONTENT_TYPE_HEADER});
+            //Default headers set to reasonable defaults (cannot be modified by user - see globalOptions & options for mutable options)
+            mergeHeaders(mergedHeaders, {'Accept': 'application/json, text/plain, */*'});
+            if (type === 'POST' || type === 'PUT' || type === 'PATCH') {
+                if (isObject(data) && !isFile(data) && !isBlob(data)) {
+                    if (!isFormData(data)) {
+                        mergeHeaders(mergedHeaders, {'Content-Type': JSON_CONTENT_TYPE_HEADER});
+                    }
                 }
             }
-        }
 
-        mergeHeaders(mergedHeaders, globalOptions.headers);
-        if (isObject(options.headers)) {
-            mergeHeaders(mergedHeaders, options.headers);
-        }
-
-        //If same domain, set XSRF-Header to XSRF-Cookie
-        if (urlIsSameOrigin(url)) {
-            var xsrfHeader = {};
-            var xsrfValue = getCookie((options.xsrfCookieName || globalOptions.xsrfCookieName || defaultOptions.xsrfCookieName));
-            if (xsrfValue) {
-                xsrfHeader[(options.xsrfHeaderName || globalOptions.xsrfHeaderName || defaultOptions.xsrfHeaderName)] = xsrfValue;
-                mergeHeaders(mergedHeaders, xsrfHeader);
+            mergeHeaders(mergedHeaders, globalOptions.headers);
+            if (isObject(options.headers)) {
+                mergeHeaders(mergedHeaders, options.headers);
             }
-        }
 
-        //Merge options together: Order of precedence is same as headers: Options, Global, Default
-        var mergedOptions = {
-            timeout: (options.timeout || globalOptions.timeout),
-            cache: (options.cache || globalOptions.cache),
-            withCredentials: (options.withCredentials || globalOptions.withCredentials),
-            progressHandler: (options.progressHandler || globalOptions.progressHandler),
-            transformRequest: (options.transformRequest || globalOptions.transformRequest || defaultOptions.transformRequest),
-            transformResponse: (options.transformResponse || globalOptions.transformResponse || defaultOptions.transformResponse),
-            transformRequestData: (options.transformRequestData || globalOptions.transformRequestData || defaultOptions.transformRequestData),
-            transformResponseData: (options.transformResponseData || globalOptions.transformResponseData || defaultOptions.transformResponseData)
-        };
+            //If same domain, set XSRF-Header to XSRF-Cookie
+            if (urlIsSameOrigin(url)) {
+                var xsrfHeader = {};
+                var xsrfValue = getCookie((options.xsrfCookieName || globalOptions.xsrfCookieName || defaultOptions.xsrfCookieName));
+                if (xsrfValue) {
+                    xsrfHeader[(options.xsrfHeaderName || globalOptions.xsrfHeaderName || defaultOptions.xsrfHeaderName)] = xsrfValue;
+                    mergeHeaders(mergedHeaders, xsrfHeader);
+                }
+            }
 
-        //A config object that can be modified by the user via a transformRequest function (globally or per request)
-        //Note that no xhr request has been created yet
-        var config = {
-            headers: mergedHeaders,
-            options: mergedOptions,
-            type: type,
-            url: url
-        };
+            //Merge options together: Order of precedence is same as headers: Options, Global, Default
+            var mergedOptions = {
+                timeout: (options.timeout || globalOptions.timeout),
+                cache: (options.cache || globalOptions.cache),
+                withCredentials: (options.withCredentials || globalOptions.withCredentials),
+                progressHandler: (options.progressHandler || globalOptions.progressHandler),
+                transformRequest: (options.transformRequest || globalOptions.transformRequest || defaultOptions.transformRequest),
+                transformResponse: (options.transformResponse || globalOptions.transformResponse || defaultOptions.transformResponse),
+                transformRequestData: (options.transformRequestData || globalOptions.transformRequestData || defaultOptions.transformRequestData),
+                transformResponseData: (options.transformResponseData || globalOptions.transformResponseData || defaultOptions.transformResponseData)
+            };
 
-        mergedOptions.transformRequest(config);
+            //A config object that can be modified by the user via a transformRequest function (globally or per request)
+            //Note that no xhr request has been created yet
+            var config = {
+                headers: mergedHeaders,
+                options: mergedOptions,
+                type: type,
+                url: url
+            };
 
-        var cache = config.options.cache;
-        if (config.type === 'GET' && cache) {
-            var parsedResponse;
-            if (typeof cache === 'boolean') {
-                parsedResponse = thisCacheFactory.get('__default').get(url);
-            } else {
-                if (cache.constructor.name === 'Cache') {
-                    parsedResponse = cache.get(url);
+            mergedOptions.transformRequest(config);
+
+            var cache = config.options.cache;
+            if (config.type === 'GET' && cache) {
+                var parsedResponse;
+                if (typeof cache === 'boolean') {
+                    parsedResponse = thisCacheFactory.get('__default').get(url);
                 } else {
-                    parsedResponse = cache.cache.get(url);
+                    if (cache.constructor.name === 'Cache') {
+                        parsedResponse = cache.get(url);
+                    } else {
+                        parsedResponse = cache.cache.get(url);
+                    }
+                }
+                if (parsedResponse) {
+                    //Need to have a timeout in order to return then go to callback. I think that setIntermediate is supposed to solve this problem
+                    setTimeout(function () {
+                        methodsThen(parsedResponse);
+                    }, 0);
+                    return callbacks;
                 }
             }
-            if (parsedResponse) {
-                //Need to have a timeout in order to return then go to callback. I think that setIntermediate is supposed to solve this problem
-                //Note that apparently real promises have a similar issue
-                setTimeout(function () {
-                    methods.first.call(methods, parsedResponse);
-                    methods.then.call(methods, parsedResponse);
-                }, 1);
-                return callbacks;
+
+            //Create XHR request
+            var XHR = thisWindow.XMLHttpRequest || ActiveXObject;
+            var request = new XHR('MSXML2.XMLHTTP.3.0');
+
+            //Set progress handler (must be done before calling request.open)
+            if (config.options.progressHandler && request.upload) {
+                request.upload.onprogress = config.options.progressHandler;
             }
-        }
 
-        //Create XHR request
-        var XHR = thisWindow.XMLHttpRequest || ActiveXObject;
-        var request = new XHR('MSXML2.XMLHTTP.3.0');
+            request.open(config.type, config.url, true);
 
-        //Set progress handler (must be done before calling request.open)
-        if (config.options.progressHandler && request.upload) {
-            request.upload.onprogress = config.options.progressHandler;
-        }
+            //Set headers (must be done after request.open)
+            setXHRHeaders(request, config.headers);
 
-        request.open(config.type, config.url, true);
+            //Set withCredentials option
+            if (config.options.withCredentials) {
+                request.withCredentials = true;
+            }
 
-        //Set headers (must be done after request.open)
-        setXHRHeaders(request, config.headers);
-
-        //Set withCredentials option
-        if (config.options.withCredentials) {
-            request.withCredentials = true;
-        }
-
-        //The event listener for when the xhr request changes state (readyState = 4 means completed - either successfully or w/ an error)
-        request.onreadystatechange = function () {
-            if (request.readyState === 4) {
-                config.options.transformResponse(request);
-                var parsedResponse = config.options.transformResponseData(request);
-                if ((request.status >= 200 && request.status < 300) || request.status === 304) {
-                    if (type === 'GET' && cache) {
-                        if (typeof cache === 'boolean') {
-                            thisCacheFactory.get('__default').set(url, parsedResponse);
-                        } else {
-                            if (cache.constructor.name === 'Cache') {
-                                cache.set(url, parsedResponse);
+            //The event listener for when the xhr request changes state (readyState = 4 means completed - either successfully or w/ an error)
+            request.onreadystatechange = function () {
+                if (request.readyState === 4) {
+                    config.options.transformResponse(request);
+                    var parsedResponse = config.options.transformResponseData(request);
+                    if ((request.status >= 200 && request.status < 300) || request.status === 304) {
+                        if (type === 'GET' && cache) {
+                            if (typeof cache === 'boolean') {
+                                thisCacheFactory.get('__default').set(url, parsedResponse);
                             } else {
-                                cache.cache.set(url, parsedResponse, cache.options);
+                                if (cache.constructor.name === 'Cache') {
+                                    cache.set(url, parsedResponse);
+                                } else {
+                                    cache.cache.set(url, parsedResponse, cache.options);
+                                }
                             }
                         }
+                        methodsThen(parsedResponse, request.status, request);
+                    } else {
+                        methodsCatch(parsedResponse, request.status, request);
                     }
-                    methods.first.call(methods, parsedResponse, request.status, request);
-                    methods.then.call(methods, parsedResponse, request.status, request);
-                } else {
-                    methods['catch'].call(methods, parsedResponse, request.status, request);
+                    config = null;
+                    request = null;
+                    parsedResponse = null;
                 }
-                methods['finally'].call(methods, parsedResponse, request.status, request);
-                config = null;
-                methods = null;
-                request = null;
-                parsedResponse = null;
+            };
+
+            //Send any data (only valid for POST, PUT, PATCH)
+            request.send(config.options.transformRequestData(data));
+
+            //Timeout handling (abort request after timeout time in milliseconds)
+            if (config.options.timeout > 0) {
+                setTimeout(function () {
+                    if (request) {
+                        request.abort();
+                    }
+                }, config.options.timeout);
             }
-        };
-
-        //Send any data (only valid for POST, PUT, PATCH)
-        request.send(config.options.transformRequestData(data));
-
-        //Timeout handling (abort request after timeout time in milliseconds)
-        if (config.options.timeout > 0) {
-            setTimeout(function () {
-                if (request) {
-                    request.abort();
-                }
-            }, config.options.timeout);
-        }
-
+        });
         return callbacks;
     }
 

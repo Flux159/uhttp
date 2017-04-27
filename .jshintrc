@@ -21,6 +21,7 @@
   "globals": {
     "uhttp": true,
     "define": true,
-    "ActiveXObject": true
+    "ActiveXObject": true,
+    "Promise": true
   }
 }
