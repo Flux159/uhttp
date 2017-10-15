@@ -9,7 +9,7 @@ if(isNode) {
     testserver = require('./api/testapi');
     var path = require('path');
 
-    var jsdom = require('jsdom');
+    var jsdom = require('jsdom/lib/old-api');
 
     testSetup = function(callback) {
         jsdom.env({
@@ -31,9 +31,7 @@ if(isNode) {
 }
 
 describe('uhttp', function() {
-
     describe('GET', function() {
-
         it('Should send a GET request correctly', function(done) {
             testSetup(function(errors, window) {
                 window.uhttp.get('http://localhost:43760/api/get').then(function(res) {
@@ -50,16 +48,14 @@ describe('uhttp', function() {
                 window.uhttp.get('http://localhost:43760/api/get404').then(function(res) {
                     //Do nothing
                 }).catch(function(err) {
-                    assert(err);
+                    assert(err === '');
                     done();
                 });
             });
         });
-
     });
 
     describe('POST', function() {
-
         it('Should send a POST request with JSON data correctly', function(done) {
             testSetup(function(errors, window) {
                 window.uhttp.post('http://localhost:43760/api/post', {content: 'Testing POST'}).then(function(res) {
@@ -96,7 +92,7 @@ describe('uhttp', function() {
                     window.uhttp.post('http://localhost:43760/api/post/form', formData).then(function(res) {
                         assert(res.data, "POST FORM");
                         done();
-                    });
+                    }).catch(() => {});
                 });
             }
         });
@@ -119,7 +115,7 @@ describe('uhttp', function() {
                 window.uhttp.post('http://localhost:43760/api/post/urlform', options, data).then(function(res) {
                     assert(res.data, "POST FORM URLENCODED");
                     done();
-                });
+                }).catch(() => {});
             });
         });
 
@@ -129,7 +125,7 @@ describe('uhttp', function() {
                     console.log("Should not get here");
                     assert(!res);
                 }).catch(function(err) {
-                    assert(err);
+                    assert(err === '');
                     done();
                 });
             });
@@ -138,7 +134,6 @@ describe('uhttp', function() {
     });
 
     describe('PUT', function() {
-
         it('Should send a PUT request with JSON data correctly', function(done) {
             testSetup(function(errors, window) {
                 window.uhttp.put('http://localhost:43760/api/put', {content: 'Testing PUT'}).then(function(res) {
@@ -153,7 +148,6 @@ describe('uhttp', function() {
     });
 
     describe('DELETE', function() {
-
         it('Should send a DELETE request correctly', function(done) {
             testSetup(function(errors, window) {
                 window.uhttp.delete('http://localhost:43760/api/delete').then(function(res) {
@@ -168,7 +162,6 @@ describe('uhttp', function() {
     });
 
     describe('PATCH', function() {
-
         it('Should send a PATCH request with JSON data correctly', function(done) {
             testSetup(function(errors, window) {
                 window.uhttp.patch('http://localhost:43760/api/patch', {content: 'Testing PATCH'}).then(function(res) {
@@ -179,11 +172,9 @@ describe('uhttp', function() {
                 });
             });
         });
-
     });
 
     describe('HEAD', function() {
-
         it('Should send a HEAD request correctly', function(done) {
             testSetup(function(errors, window) {
                 window.uhttp.head('http://localhost:43760/api/head').then(function(res, status, xhr) {
@@ -194,30 +185,25 @@ describe('uhttp', function() {
                 });
             });
         });
-
     });
 
     describe('JSONP', function() {
-
         it('Should send a JSONP request correctly', function(done) {
             testSetup(function(errors, window) {
                 window.uhttp.jsonp('http://localhost:43760/api/jsonp?callback=JSON_CALLBACK').then(function(res) {
                     assert.equal(res.data, 'JSONP');
                     done();
-                });
+                }).catch(() => {});
             });
         });
-
     });
 
     describe('Timeouts', function() {
-
         it('Should handle timeouts correctly', function(done) {
             if(isNode) {
                 done(); //Aborting xhr requests seems to be iffy in jsdom
             } else {
                 testSetup(function(errors, window) {
-
                     window.uhttp.get('http://localhost:43760/api/timeout').then(function(res) {
                         assert.equal(res.data, 'timein');
 
@@ -226,18 +212,14 @@ describe('uhttp', function() {
                         }).catch(function(err) {
                             done();
                         });
-
-                    });
+                    }).catch(() => {});
                 });
             }
         });
-
     });
 
     describe('Caching', function() {
-
         it('Should cache and retrieve GET requests correctly', function(done) {
-
             testSetup(function(errors, window) {
                 window.uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res, status, xhr) {
                     assert.equal(res.data, "GET");
@@ -254,12 +236,10 @@ describe('uhttp', function() {
                     //Do nothing
                 });
             });
-
         });
 
         it('Should allow users to create custom caches with cache timeouts and clearing capabilities', function(done) {
             testSetup(function(errors, window) {
-
                 var cacheFactory = window.uhttp.CacheFactory;
                 var blogCache = cacheFactory.get('blogs');
                 var cacheOptions = {cache: blogCache, options: {timeout: 500}};
@@ -274,14 +254,12 @@ describe('uhttp', function() {
 
                         setTimeout(function() {
                             window.uhttp.get('http://localhost:43760/api/get', {cache: cacheOptions}).then(function(res, status, xhr) {
-
                                 assert.equal(res.data, "GET");
                                 assert(status);
                                 assert(xhr);
 
                                 //Using the same cache
                                 window.uhttp.get('http://localhost:43760/api/get', {cache: blogCache}).then(function(res, status, xhr) {
-
                                     assert.equal(res.data, "GET");
                                     assert(!status);
                                     assert(!xhr);
@@ -290,7 +268,6 @@ describe('uhttp', function() {
                                 });
                             });
                         }, 510);
-
                     }).catch(function(err) {
                         //Do nothing
                     });
@@ -299,11 +276,9 @@ describe('uhttp', function() {
                 });
             });
         });
-
     });
 
     describe('XSRF', function() {
-
         it('Should send the correct XSRF Cookie', function(done) {
             testSetup(function(errors, window) {
 
@@ -313,22 +288,19 @@ describe('uhttp', function() {
                     assert(res.data, 'Correct xsrf token');
                 }).catch(function(err) {
                     //Do nothing
-                }).finally(function() {
+                }).then(function() {
                     done();
                 });
             });
         });
-
     });
 
     describe('POST Images/Files', function() {
-
         it('Should send the correct Image data', function(done) {
             //TODO: Find a way to automatically test this... you can't make a File object in JS and send it and you can't "click" on an input file field and select an object like a user would
             //For now I'm going to leave this as blank and test manually in testupload.html
             done();
         });
-
     });
 
     describe('Interceptors', function() {
@@ -352,7 +324,7 @@ describe('uhttp', function() {
                     assert(res.data, "Man in the middle!");
                 }).catch(function(err) {
                     //Do nothing
-                }).finally(function() {
+                }).then(function() {
                     done();
                 });
             });
@@ -422,8 +394,8 @@ describe('uhttp', function() {
                     window.uhttp.get('http://localhost:43760/api/get').then(function(res) {
                         assert.equal(res.content, 'changed!');
                         done();
-                    });
-                });
+                    }).catch(() => {});
+                }).catch(() => {});
             });
 
         });

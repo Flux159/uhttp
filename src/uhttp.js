@@ -302,10 +302,7 @@
      * @param [options] - options supported: {timeout: int}
      */
     function jsonp(url) {
-
-        var callbacks = new Promise(function(methodsThen, methodsCatch) {
-
-
+        var callbacks = new Promise(function(resolve, reject) {
             //Creating a callback function and a script element
             var callbackId = 'uhttp_callback_' + new Date().getTime() + '_' + Math.round(Math.random() * 1e16).toString(36);
             var script = document.createElement('script');
@@ -316,7 +313,7 @@
                 thisWindow[callbackId] = undefined;
                 script = null;
                 callbackId = null;
-                methodsThen(res);
+                resolve(res);
             };
 
             //Error callback
@@ -325,7 +322,7 @@
                 thisWindow[callbackId] = undefined;
                 script = null;
                 callbackId = null;
-                methodsCatch(e);
+                reject(e);
             };
 
             //Find JSON_CALLBACK in url & replace w/ callbackId function
@@ -355,8 +352,7 @@
             options = {};
         }
 
-        var callbacks = new Promise(function(methodsThen, methodsCatch) {
-
+        var callbacks = new Promise(function(resolve, reject) {
             //Iterate headers and add to xhr
             //Order of precedence: Options, Global, Default
             var mergedHeaders = {};
@@ -424,7 +420,7 @@
                 if (parsedResponse) {
                     //Need to have a timeout in order to return then go to callback. I think that setIntermediate is supposed to solve this problem
                     setTimeout(function () {
-                        methodsThen(parsedResponse);
+                        resolve(parsedResponse);
                     }, 0);
                     return callbacks;
                 }
@@ -466,9 +462,9 @@
                                 }
                             }
                         }
-                        methodsThen(parsedResponse, request.status, request);
+                        resolve(parsedResponse, request.status, request);
                     } else {
-                        methodsCatch(parsedResponse, request.status, request);
+                        reject(parsedResponse, request.status, request);
                     }
                     config = null;
                     request = null;

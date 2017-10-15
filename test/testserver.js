@@ -82,7 +82,7 @@ describe('uhttp-server', function() {
                 window.uhttp.post('http://localhost:43760/api/post/urlform', options, data).then(function(res) {
                     assert(res.data, "POST FORM URLENCODED");
                     done();
-                });
+                }).catch(() => {});
             });
         });
 
@@ -168,17 +168,15 @@ describe('uhttp-server', function() {
                 window.uhttp.jsonp('http://localhost:43760/api/jsonp?callback=JSON_CALLBACK').then(function(res) {
                     assert.equal(res.data, 'JSONP');
                     done();
-                });
+                }).catch(() => {});
             });
         });
 
     });
 
     describe('Timeouts', function() {
-
         it('Should handle timeouts correctly', function(done) {
             testSetup(function(errors, window) {
-
                 window.uhttp.get('http://localhost:43760/api/timeout').then(function(res) {
                     assert.equal(res.data, 'timein');
 
@@ -187,17 +185,13 @@ describe('uhttp-server', function() {
                     }).catch(function(err) {
                         done();
                     });
-
                 });
             });
         });
-
     });
 
     describe('Caching', function() {
-
         it('Should cache and retrieve GET requests correctly', function(done) {
-
             testSetup(function(errors, window) {
                 window.uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res, status, xhr) {
                     assert.equal(res.data, "GET");
@@ -214,12 +208,10 @@ describe('uhttp-server', function() {
                     //Do nothing
                 });
             });
-
         });
 
         it('Should allow users to create custom caches with cache timeouts and clearing capabilities', function(done) {
             testSetup(function(errors, window) {
-
                 var cacheFactory = window.uhttp.CacheFactory;
                 var blogCache = cacheFactory.get('blogs');
                 var cacheOptions = {cache: blogCache, options: {timeout: 500}};
@@ -247,8 +239,8 @@ describe('uhttp-server', function() {
                                     assert(!xhr);
 
                                     done();
-                                });
-                            });
+                                }).catch(() => {});
+                            }).catch(() => {});
                         }, 510);
 
                     }).catch(function(err) {
@@ -300,7 +292,7 @@ describe('uhttp-server', function() {
                     assert(res.data, "Man in the middle!");
                 }).catch(function(err) {
                     //Do nothing
-                }).finally(function() {
+                }).then(function() {
                     done();
                 });
             });
@@ -325,8 +317,8 @@ describe('uhttp-server', function() {
                     window.uhttp.get('http://localhost:43760/api/get').then(function(res) {
                         assert.equal(res.content, 'changed!');
                         done();
-                    });
-                });
+                    }).catch(() => {});
+                }).catch(() => {});
             });
 
         });

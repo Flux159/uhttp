@@ -6,7 +6,7 @@ uhttp is about 6kb minified and about 2.3kb minified and compressed.
 
 uhttp supports setting headers globally for all requests and setting headers individually for each request. It also automatically parses json in responses with the appropriate content type. uhttp is based off of [atomic](https://github.com/toddmotto/atomic) and angularjs's [$http](https://github.com/angular/angular.js/blob/v1.3.x/src/ng/http.js). uhttp was written because atomic didn't support common features (setting headers & sending json POST requests) and [React](https://facebook.github.io/react/index.html) didn't come with a built in ajax library (recommending jQuery's ajax instead).
 
-Note that uhttp does not use true [promises](https://github.com/jakearchibald/es6-promise).
+Version 2.0 of uhttp uses promises server side and client side.
 
 #### Downloading & Setting up
 
@@ -374,7 +374,7 @@ window.uhttp.get('http://localhost:43760/api/get', options).then(function(res) {
     console.log(res.data); //prints "Man in the middle!"
 }).catch(function(err) {
     //Do nothing
-}).finally(function() {
+}).then(function() {
     done();
 });
 ```
@@ -428,7 +428,7 @@ window.uhttp.get('http://localhost:43760/api/get', options).then(function(res) {
     console.log(res.data);
 }).catch(function(err) {
     //Do nothing
-}).finally(function() {
+}).then(function() {
     done();
 });
 
