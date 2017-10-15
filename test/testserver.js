@@ -150,8 +150,8 @@ describe('uhttp-server', function() {
 
         it('Should send a HEAD request correctly', function(done) {
             testSetup(function(errors, window) {
-                window.uhttp.head('http://localhost:43760/api/head').then(function(res, status, xhr) {
-                    assert.equal(xhr.getResponseHeader('Custom-Header'), "HEAD");
+                window.uhttp.head('http://localhost:43760/api/head', {details: true}).then(function({res, request}) {
+                    assert.equal(request.getResponseHeader('Custom-Header'), "HEAD");
                     done();
                 }).catch(function(err) {
                     //Do nothing
@@ -162,7 +162,6 @@ describe('uhttp-server', function() {
     });
 
     describe('JSONP', function() {
-
         it('Should send a JSONP request correctly', function(done) {
             testSetup(function(errors, window) {
                 window.uhttp.jsonp('http://localhost:43760/api/jsonp?callback=JSON_CALLBACK').then(function(res) {
@@ -196,10 +195,10 @@ describe('uhttp-server', function() {
                 window.uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res, status, xhr) {
                     assert.equal(res.data, "GET");
 
-                    window.uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res, status, xhr) {
+                    window.uhttp.get('http://localhost:43760/api/get', {cache: true, details: true}).then(function({res, status, request}) {
                         assert.equal(res.data, "GET");
-                        assert(!status);
-                        assert(!xhr);
+                        assert(status === 304);
+                        assert(!request);
                         done();
                     }).catch(function(err) {
                         //Do nothing
@@ -219,24 +218,23 @@ describe('uhttp-server', function() {
                 window.uhttp.get('http://localhost:43760/api/get', {cache: cacheOptions}).then(function(res, status, xhr) {
                     assert.equal(res.data, "GET");
 
-                    window.uhttp.get('http://localhost:43760/api/get', {cache: cacheOptions}).then(function(res, status, xhr) {
+                    window.uhttp.get('http://localhost:43760/api/get', {cache: cacheOptions, details: true}).then(function({res, status, request}) {
                         assert.equal(res.data, "GET");
-                        assert(!status);
-                        assert(!xhr);
+                        assert(status === 304);
+                        assert(!request);
 
                         setTimeout(function() {
-                            window.uhttp.get('http://localhost:43760/api/get', {cache: cacheOptions}).then(function(res, status, xhr) {
+                            window.uhttp.get('http://localhost:43760/api/get', {cache: cacheOptions, details: true}).then(function({res, status, request}) {
 
                                 assert.equal(res.data, "GET");
-                                assert(status);
-                                assert(xhr);
+                                assert(status === 200);
+                                assert(request);
 
                                 //Using the same cache
-                                window.uhttp.get('http://localhost:43760/api/get', {cache: blogCache}).then(function(res, status, xhr) {
-
+                                window.uhttp.get('http://localhost:43760/api/get', {cache: blogCache, details: true}).then(function({res, status, request}) {
                                     assert.equal(res.data, "GET");
-                                    assert(!status);
-                                    assert(!xhr);
+                                    assert(status === 304);
+                                    assert(!request);
 
                                     done();
                                 }).catch(() => {});

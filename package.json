@@ -13,7 +13,7 @@
   "browser": "./browserIndex.js",
   "scripts": {
     "build": "grunt build",
-    "test": "NODE_ENV=test node node_modules/.bin/mocha \"test/**/*.js\"",
+    "test": "NODE_ENV=test node node_modules/.bin/mocha \"test/testserver.js\"",
     "test-coverage": "NODE_ENV=test node node_modules/.bin/mocha -r blanket -R html-cov > coverage/coverage.html"
   },
   "devDependencies": {
