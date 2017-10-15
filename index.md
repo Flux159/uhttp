@@ -6,7 +6,7 @@ uhttp is about 6kb minified and about 2.3kb minified and compressed.
 
 uhttp supports setting headers globally for all requests and setting headers individually for each request. It also automatically parses json in responses with the appropriate content type. uhttp is based off of [atomic](https://github.com/toddmotto/atomic) and angularjs's [$http](https://github.com/angular/angular.js/blob/v1.3.x/src/ng/http.js). uhttp was written because atomic didn't support common features (setting headers & sending json POST requests) and [React](https://facebook.github.io/react/index.html) didn't come with a built in ajax library (recommending jQuery's ajax instead).
 
-Note that uhttp does not use true [promises](https://github.com/jakearchibald/es6-promise).
+Version 2.0 of uhttp uses promises server side and client side.
 
 #### Downloading & Setting up
 
@@ -41,9 +41,9 @@ Note: You should not use the minified browser version of uhttp in nodejs (or vic
 Use uhttp.get() to make a GET request. You can use "then... catch" callbacks to obtain the response.
 
 ```javascript
-uhttp.get('/api/endpoint').then(function(res, status, xhr) {
+uhttp.get('/api/endpoint').then(function(res) {
     //Successful response
-}).catch(function(err, status, xhr) {
+}).catch(function(err) {
     //Error
 });
 
@@ -60,12 +60,26 @@ var options = {
     timeout: 3000 //3 seconds; '0' for no timeout
 };
 
-uhttp.get('/api/endpoint', options).then(function(res, status, xhr) {
+uhttp.get('/api/endpoint', options).then(function(res) {
     //Success
-}).catch(function(err, status, xhr) {
+}).catch(function(err) {
     //Error
 });
 
+```
+
+#### Options.details
+
+Note that there is a specific option that changes how the response is returned. If you set details: true, then an object containing the request and request status will be returned along with the response. See the example below:
+
+This is a breaking change from uhttp 1.0 to 2.0 since true promises can only have a single resolved value (and a single rejected value respectively).
+
+```javascript
+uhttp.get('/api/endpoint', {details: true}).then(function({res, status, request}) {
+  // Success, response in res (note object destructuring)
+}).catch(function({err, status, request}) {
+  // Error in err (note object destructuring)
+});
 ```
 
 #### uhttp.post(url, [,options] [,data])
@@ -121,9 +135,9 @@ uhttp.post('/api/endpoint/post/form/urlencoded', options, data).then(function(re
 Example setting a custom content type:
 ```javascript
 var myCustomData = '<custom>xml</custom>';
-uhttp.post('/api/endpoint/post', {headers: {'Content-Type': 'application/xml'}}, myCustomData).then(function(res, status, xhr) {
+uhttp.post('/api/endpoint/post', {headers: {'Content-Type': 'application/xml'}}, myCustomData).then(function(res) {
     //Success
-}).catch(function(err, status, xhr) {
+}).catch(function(err) {
     //Error
 });
 ```
@@ -133,9 +147,9 @@ uhttp.post('/api/endpoint/post', {headers: {'Content-Type': 'application/xml'}},
 Use uhttp.put() to make a PUT request. The options are similar to POST requests.
 
 ```javascript
-uhttp.put('/api/endpoint/put', {some: 'data'}).then(function(res, status, xhr) {
+uhttp.put('/api/endpoint/put', {some: 'data'}).then(function(res) {
     //Success
-}).catch(function(err, status, xhr) {
+}).catch(function(err) {
     //Error
 });
 ```
@@ -145,9 +159,9 @@ uhttp.put('/api/endpoint/put', {some: 'data'}).then(function(res, status, xhr) {
 Use uhttp.patch() to make a PATCH request.
 
 ```javascript
-uhttp.patch('/api/endpoint/patch', {some: 'data'}).then(function(res, status, xhr) {
+uhttp.patch('/api/endpoint/patch', {some: 'data'}).then(function(res) {
     //Success
-}).catch(function(err, status, xhr) {
+}).catch(function(err) {
     //Error
 });
 ```
@@ -157,9 +171,9 @@ uhttp.patch('/api/endpoint/patch', {some: 'data'}).then(function(res, status, xh
 Use uhttp.delete() to send a DELETE request.
 
 ```javascript
-uhttp.delete('/api/endpoint/delete').then(function(res, status, xhr) {
+uhttp.delete('/api/endpoint/delete').then(function(res) {
     //Success
-}).catch(function(err, status, xhr) {
+}).catch(function(err) {
     //Error
 });
 ```
@@ -169,10 +183,10 @@ uhttp.delete('/api/endpoint/delete').then(function(res, status, xhr) {
 Use uhttp.head() to send a HEAD request.
 
 ```javascript
-uhttp.head('/api/endpoint/head').then(function(res, status, xhr) {
+uhttp.head('/api/endpoint/head').then(function(res) {
     //Success
     console.log(xhr.getHeader('Custom-Header'));
-}).catch(function(err, status, xhr) {
+}).catch(function(err) {
     //Error
 });
 ```
@@ -374,7 +388,7 @@ window.uhttp.get('http://localhost:43760/api/get', options).then(function(res) {
     console.log(res.data); //prints "Man in the middle!"
 }).catch(function(err) {
     //Do nothing
-}).finally(function() {
+}).then(function() {
     done();
 });
 ```
@@ -428,7 +442,7 @@ window.uhttp.get('http://localhost:43760/api/get', options).then(function(res) {
     console.log(res.data);
 }).catch(function(err) {
     //Do nothing
-}).finally(function() {
+}).then(function() {
     done();
 });
 
@@ -439,9 +453,9 @@ window.uhttp.get('http://localhost:43760/api/get', options).then(function(res) {
 uhttp provides a basic caching mechanism where you can cache your GET responses (no xhr request is sent). By default, setting the cache option to true enables this and uses uhttp's default cache. If you need a custom cache object, you can use uhttp's CacheFactory to create a custom cache object that you can manually clear and set timeouts for. Note: Caching only works for GET requests.
 
 ```javascript
-uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res, status, xhr) {
+uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res) {
     //Sends xhr request
-   uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res, status, xhr) {
+   uhttp.get('http://localhost:43760/api/get', {cache: true}).then(function(res) {
         //From javascript cache, no xhr request sent
    }).catch(function(err) {
         //Do nothing
@@ -464,7 +478,7 @@ blogCache.get('secondpost');
 blogCache.clear();
 
 //You can pass this cache to uhttp's cache option as well!
-uhttp.get('http://localhost:43760/api/get', {cache: blogCache}).then(function(res, status, xhr) {
+uhttp.get('http://localhost:43760/api/get', {cache: blogCache}).then(function(res) {
     //Data is cached in blogCache w/ url as key (you now have control of when to delete from the cache)
 });
 
@@ -500,7 +514,7 @@ LICENSE
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Suyog Sonwalkar
+Copyright (c) 2015-2017 Suyog Sonwalkar
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
