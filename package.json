@@ -1,7 +1,7 @@
 {
   "name": "uhttp",
   "description": "A micro ajax http library with a unified api for browsers and nodejs",
-  "version": "1.2.3",
+  "version": "2.0.0",
   "repository": "https://github.com/Flux159/uhttp",
   "homepage": "http://flux159.github.io/uhttp/",
   "keywords": [
