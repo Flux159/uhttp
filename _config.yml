@@ -1,0 +1,8 @@
+title: uhttp
+description: A micro ajax library with a unified api for browsers and nodejs
+google_analytics: UA-47539617-6
+show_downloads: true
+theme: jekyll-theme-cayman
+
+gems:
+  - jekyll-mentions
