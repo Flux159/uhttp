@@ -383,16 +383,7 @@
       }
 
       //Merge options together: Order of precedence is same as headers: Options, Global, Default
-      var mergedOptions = {
-        timeout: (options.timeout || globalOptions.timeout),
-        cache: (options.cache || globalOptions.cache),
-        withCredentials: (options.withCredentials || globalOptions.withCredentials),
-        progressHandler: (options.progressHandler || globalOptions.progressHandler),
-        transformRequest: (options.transformRequest || globalOptions.transformRequest || defaultOptions.transformRequest),
-        transformResponse: (options.transformResponse || globalOptions.transformResponse || defaultOptions.transformResponse),
-        transformRequestData: (options.transformRequestData || globalOptions.transformRequestData || defaultOptions.transformRequestData),
-        transformResponseData: (options.transformResponseData || globalOptions.transformResponseData || defaultOptions.transformResponseData)
-      };
+      var mergedOptions = Object.assign({}, defaultOptions, globalOptions, options);
 
       //A config object that can be modified by the user via a transformRequest function (globally or per request)
       //Note that no xhr request has been created yet
