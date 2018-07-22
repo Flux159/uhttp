@@ -502,7 +502,7 @@ console.log(uhttp.getCookie('othercookie')); //'yay!'
 uhttp is developed using a nodejs environment and uses [grunt](http://gruntjs.com/getting-started) for running tests and building. Make sure that you have nodejs and npm installed, clone this source repository and run the following in the uhttp directory:
 
 ```
-npm install && grunt build
+npm install && npm run build
 ```
 
 That will install all dependencies for development, run uhttp's tests, and build a minified version of uhttp in the dist directory.
